@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -51,6 +51,22 @@ function createWindow() {
     win.webContents.openDevTools();
   }
 }
+
+// IPC handler for opening file dialog
+ipcMain.handle('open-file-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+  });
+  return result.filePaths;
+});
+
+// IPC handler for opening directory dialog
+ipcMain.handle('open-dir-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+  return result.filePaths;
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

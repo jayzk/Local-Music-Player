@@ -1,16 +1,28 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/electron-vite.animate.svg'
-//import './App.css'
+import {
+  Route,
+  RouterProvider,
+  createHashRouter,
+  createRoutesFromElements,
+} from "react-router-dom";
+import HomePage from "./pages/Home";
+import MainLayout from "./Layouts/MainLayout";
+import MusicExplorer from "./pages/MusicExplorer";
+import Player from "./pages/Player";
+
+const router = createHashRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<MainLayout />}>
+      <Route index element={<HomePage />} />
+      <Route path="MusicExplorer" element={<MusicExplorer />} />
+      <Route path="Player" element={<Player />} />
+    </Route>
+  )
+);
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <h1 className="text-3xl font-bold underline">
-      Hello world!
-    </h1>
-  )
+  return (    
+    <RouterProvider router={router} />
+  );
 }
 
-export default App
+export default App;
