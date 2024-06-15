@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, net, protocol, session } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -26,6 +26,33 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null
 
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'media-loader', 
+    privileges: { 
+      bypassCSP: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+     } }
+])
+
+//custom protocol handler for media-loader URL's 
+app.whenReady().then(() => {
+  protocol.handle('media-loader', (request) =>
+  net.fetch('file://' + request.url.slice('media-loader://'.length)));
+
+  // Modify the user agent for all requests to the following urls.
+  const filter = {
+    urls: ['https://*.github.com/*', '*://electron.github.io/*', '*:///*',]
+  }
+
+  //TODO: try to handle CORS
+  // session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
+  //   details.requestHeaders['User-Agent'] = 'MyAgent';
+  //   callback({ requestHeaders: details.requestHeaders });
+  // });
+});
+
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -50,6 +77,9 @@ function createWindow() {
   if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools();
   }
+
+  //Bypassing CORS
+  
 }
 
 // IPC handler for opening file dialog
@@ -85,5 +115,7 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+
 
 app.whenReady().then(createWindow)
