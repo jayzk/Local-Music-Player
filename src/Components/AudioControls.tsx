@@ -1,22 +1,20 @@
 import { Button } from "@headlessui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface AudioControlsProps {
   fileUrl: string;
-  _audioRef: React.MutableRefObject<HTMLAudioElement | null>;
-  _sliderRef: React.MutableRefObject<HTMLInputElement | null>;
 }
 
 export default function AudioControls({
   fileUrl,
-  _audioRef,
-  _sliderRef,
+
 }: AudioControlsProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const audioRef = _audioRef;
-  const sliderRef = _sliderRef;
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const sliderRef = useRef<HTMLInputElement | null>(null);
 
   //functions for music player
   useEffect(() => {

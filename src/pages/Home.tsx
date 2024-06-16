@@ -1,14 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import 'react-h5-audio-player/lib/styles.css';
 import AudioControls from "../Components/AudioControls";
 
 export default function Home() {
   const [selectedFilePath, setSelectedFilePath] = useState("");
   const [selectedDirPath, setSelectedDirPath] = useState("");
-
-  //For audio controls
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const sliderRef = useRef<HTMLInputElement | null>(null);
 
   const handleOpenFileDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-file-dialog");
@@ -67,7 +63,7 @@ export default function Home() {
         (fileExtension === "mp3" ||
           fileExtension === "wav" ||
           fileExtension === "ogg") && (
-          <AudioControls fileUrl={fileUrl} _audioRef={audioRef} _sliderRef={sliderRef} />
+          <AudioControls fileUrl={fileUrl} />
         )}
     </div>
   );
