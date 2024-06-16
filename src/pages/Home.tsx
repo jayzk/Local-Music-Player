@@ -1,6 +1,9 @@
 import electron from "electron";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@headlessui/react";
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
+import AudioControls from "../Components/AudioControls";
 
 export default function Home() {
   const [selectedFilePath, setSelectedFilePath] = useState("");
@@ -12,7 +15,7 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const sliderRef = useRef<HTMLInputElement | null>(null);
-  const [metadata, setMetadata] = useState<{ duration: number }>({ duration: 0 });
+  //const [metadata, setMetadata] = useState<{ duration: number }>({ duration: 0 });
 
   const handleOpenFileDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-file-dialog");
@@ -30,58 +33,36 @@ export default function Home() {
 
   //functions for music player
   useEffect(() => {
+    console.log("Running time updates");
     const audio = audioRef.current;
-    console.log("init test");
-
-    const handleLoadedMetadata = () => {
-      if (audio) {
-        setMetadata({
-          duration: audio.duration,
-        });
-        
-        console.log('Duration:', audio.duration);
-      }
-    };
 
     if (audio) {
-      console.log("init test2");
-      const getDuration = (event: Event) => {
-        const target = event.target as HTMLAudioElement;
-        target.currentTime = 24*60*60;
-        target.removeEventListener('timeupdate', getDuration);
-        console.log(target.duration);
-        setDuration(target.duration);
-      };
 
       const updateCurrentTime = () => {
-        setCurrentTime(audio.currentTime);
+        //audio.currentTime = Number(sliderRef.current?.value);
+        setCurrentTime(audio.currentTime); //continuoslly update the slider
+        console.log("Current audio time: ", audio.currentTime); //Auto-updates, how????
       };
 
       const updateDuration = () => {
-        if (audio.duration !== Infinity && !isNaN(audio.duration)) {
-          //audio.addEventListener('timeupdate', getDuration);
-          audio.currentTime = 1e101;
-          setDuration(audio.duration);
-          console.log(audio.duration);
-        }
-      };
+        setDuration(audio.duration);
+        console.log("Max audio duration: ", audio.duration);
+      }
 
-      
+      //once metadata has been loaded, update the duration
+      audio.addEventListener("loadedmetadata", updateDuration); 
 
-      audio.onloadedmetadata = handleLoadedMetadata;
+      //listen for when currentTime has been updated
+      audio.addEventListener("timeupdate", updateCurrentTime); //MAYBE: i have to use this in the other func?
 
-      audio.addEventListener("timeupdate", updateCurrentTime);
-      //audio.addEventListener("loadedmetadata", updateDuration);
-
+      //cleanup
       return () => {
+        audio.removeEventListener("loadedmetadata", updateDuration);
         audio.removeEventListener("timeupdate", updateCurrentTime);
-        //audio.removeEventListener("loadedmetadata", updateDuration);
-        if (audio) {
-          audio.onloadedmetadata = null;
-        }
-      };
+      }
     }
-  }, []);
+
+  }, []); //useEffect if audioRef & current exists and the metadata is avaliable
 
   const handlePlayPause = () => {
     const audio = audioRef.current;
@@ -97,11 +78,28 @@ export default function Home() {
     }
   };
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSliderChange = () => {
+    const audio = audioRef.current;
+    if (audio && sliderRef.current) {
+      const newTime = Number(sliderRef.current?.value);
+      audio.currentTime = newTime; //WHY DOESNT THIS CHANGE FFS
+      setCurrentTime(newTime); //used to update the slider render only
+      console.log("handleSliderChange -> setting slide time to: ", newTime);
+      console.log("handleSliderChange -> setting audio.currentTime to: ", audio.currentTime);
+      //console.log("handleSliderChange -> Current state audio time: ", currentTime); //we do not want this
+
+      const timeRangesObj = audio.seekable;
+      console.log("Test 1:", timeRangesObj);
+    }
+  };
+
+  const handleTest = () => {
     const audio = audioRef.current;
     if (audio) {
-      audio.currentTime = Number(e.target.value);
-      setCurrentTime(Number(e.target.value));
+      audio.currentTime = 80;
+      setCurrentTime(80); //used to update the slider render only
+      console.log("handleSliderChange -> setting audio.currentTime to: ", audio.currentTime);
+      //console.log("handleSliderChange -> Current state audio time: ", currentTime); //we do not want this
     }
   };
 
@@ -129,6 +127,35 @@ export default function Home() {
       console.log("fileUrl: ", fileUrl);
       console.log("fileExtension: ", fileExtension);
     }
+
+    console.log("Running time updates");
+    const audio = audioRef.current;
+
+    if (audio) {
+
+      const updateCurrentTime = () => {
+        //audio.currentTime = Number(sliderRef.current?.value);
+        setCurrentTime(audio.currentTime); //continuoslly update the slider
+        console.log("Current audio time: ", audio.currentTime); //Auto-updates, how????
+      };
+
+      const updateDuration = () => {
+        setDuration(audio.duration);
+        console.log("Max audio duration: ", audio.duration);
+      }
+
+      //once metadata has been loaded, update the duration
+      audio.addEventListener("loadedmetadata", updateDuration); 
+
+      //listen for when currentTime has been updated
+      audio.addEventListener("timeupdate", updateCurrentTime); //MAYBE: i have to use this in the other func?
+
+      //cleanup
+      return () => {
+        audio.removeEventListener("loadedmetadata", updateDuration);
+        audio.removeEventListener("timeupdate", updateCurrentTime);
+      }
+    }
   }, [selectedFilePath, fileUrl, fileExtension]);
 
   return (
@@ -152,9 +179,7 @@ export default function Home() {
       )}
 
       {/* TESTING AUDIO */}
-      <audio ref={audioRef} src="media-loader:///D:/Music/Galantis-NoMoney.mp3">
-        {/* <source src="media-loader:///D:/Music/Galantis-NoMoney-Copy.wav" type={`audio/wav`} />
-        Your browser does not support the audio element. */}
+      {/* <audio ref={audioRef} src="media-loader:///D:/Music/Galantis-NoMoney.mp3" preload="metadata">
       </audio>
       <Button
         onClick={handlePlayPause}
@@ -165,39 +190,44 @@ export default function Home() {
       <input
         type="range"
         ref={sliderRef}
-        max={metadata.duration.toString()}
+        max={duration.toString()}
         value={currentTime.toString()}
         onChange={handleSliderChange}
       />
       <span>{formatTime(currentTime)}</span> /{" "}
-      <span>{formatTime(metadata.duration)}</span>
+      <span>{formatTime(duration)}</span> */}
+
+      {/* <AudioPlayer
+      src="file:///D:/Music/Galantis-NoMoney.mp3"
+      onPlay={e => console.log("onPlay")}
+      // other props here
+    /> */}
 
       {fileUrl &&
         fileExtension &&
         (fileExtension === "mp3" ||
           fileExtension === "wav" ||
           fileExtension === "ogg") && (
-          <div>
-            <audio>
-              <source src={fileUrl} type={`audio/${fileExtension}`} />
-              Your browser does not support the audio element.
-            </audio>
-            <Button
-              onClick={handlePlayPause}
-              className="inline-flex items-center gap-2 rounded-md bg-gray-700 py-1.5 px-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
-            >
-              {isPlaying ? "Pause" : "Play"}
-            </Button>
-            <input
-              type="range"
-              ref={sliderRef}
-              max={duration.toString()}
-              value={currentTime.toString()}
-              onChange={handleSliderChange}
-            />
-            <span>{formatTime(currentTime)}</span> /{" "}
-            <span>{formatTime(duration)}</span>
-          </div>
+          // <div>
+          //   <audio ref={audioRef} src={fileUrl} preload="metadata">
+          //   </audio>
+          //   <Button
+          //     onClick={handlePlayPause}
+          //     className="inline-flex items-center gap-2 rounded-md bg-gray-700 py-1.5 px-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
+          //   >
+          //     {isPlaying ? "Pause" : "Play"}
+          //   </Button>
+          //   <input
+          //     type="range"
+          //     ref={sliderRef}
+          //     max={duration.toString()}
+          //     value={currentTime.toString()}
+          //     onChange={handleSliderChange}
+          //   />
+          //   <span>{formatTime(currentTime)}</span> /{" "}
+          //   <span>{formatTime(duration)}</span>
+          // </div>
+          <AudioControls fileUrl={fileUrl} fileExtension={fileExtension} _audioRef={audioRef} _sliderRef={sliderRef} />
         )}
     </div>
   );
