@@ -1,7 +1,9 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol, session } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, net, protocol, ProtocolRequest, Response as ElectronResponse, session, ProtocolResponse } from 'electron'
 import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
-import path from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
+//import path from 'node:path'
+import * as path from 'path'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -38,19 +40,36 @@ protocol.registerSchemesAsPrivileged([
 
 //custom protocol handler for media-loader URL's 
 app.whenReady().then(() => {
-  protocol.handle('media-loader', (request) =>
-  net.fetch('file://' + request.url.slice('media-loader://'.length)));
+  //protocol.handle isn't able to support seekable media atm, using the depreciated version for now
+  // protocol.handle('media-loader', (request) =>
+  // net.fetch('file://' + request.url.slice('media-loader://'.length)));
+
+  // Create custom protocol for local media loading (depreciated)
+  protocol.registerFileProtocol("media-loader", (request, callback) => {
+    const url = request.url.replace("media-loader://", "");
+    try {
+      return callback(url);
+    } catch (err) {
+      console.error(err);
+    }
+  });
 
   // Modify the user agent for all requests to the following urls.
   const filter = {
     urls: ['https://*.github.com/*', '*://electron.github.io/*', '*:///*',]
   }
 
-  //TODO: try to handle CORS
-  // session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
-  //   details.requestHeaders['User-Agent'] = 'MyAgent';
-  //   callback({ requestHeaders: details.requestHeaders });
-  // });
+  //Leave this here just in case because chromium can be buggy with ranges
+//   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+//     callback({ responseHeaders: Object.assign({
+//         "accept-ranges": [ "bytes" ],
+//         "Content-Length": [4718592],
+//         "Content-Range": ["bytes 0-4718592/4718592"],
+//         "Content-Type": ["audio/mp3"],
+//         "status": [206],
+//         "Connection": "keep-alive",
+//     }, details.responseHeaders)});
+// });
 });
 
 function createWindow() {
@@ -77,9 +96,6 @@ function createWindow() {
   if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools();
   }
-
-  //Bypassing CORS
-  
 }
 
 // IPC handler for opening file dialog
