@@ -93,9 +93,11 @@ function createWindow() {
   }
 
   // Open the DevTools in development mode
-  if (process.env.NODE_ENV === 'development') {
-    win.webContents.openDevTools();
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  //   win.webContents.openDevTools();
+  // }
+
+  win.maximize();
 }
 
 // IPC handler for opening file dialog
