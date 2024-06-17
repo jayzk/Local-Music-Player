@@ -10,7 +10,7 @@ export default function MainLayout() {
     // </>
     <div className="flex">
         <Navbar />
-        <div className="w-screen bg-slate-300">
+        <div className="w-screen bg-gradient-to-tl from-slate-800 via-purple-700 to-slate-800">
             <Outlet />
         </div>
     </div>

@@ -25,6 +25,7 @@ export default function Home() {
         .replace(/%3A/g, ":")
         .replace(/%5C/g, "/")}`
     : "";
+    
   const fileExtension = selectedFilePath
     ? selectedFilePath.split(".").pop()?.toLowerCase()
     : "";
