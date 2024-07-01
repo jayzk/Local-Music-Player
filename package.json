@@ -2,24 +2,31 @@
   "name": "local-music-player",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron-dev": "set \"VITE_CJS_TRACE=true\" && vite",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@headlessui/react": "^2.0.4",
     "@heroicons/react": "^2.1.3",
+    "better-sqlite3": "^11.0.0",
+    "builtin-modules": "^4.0.0",
+    "pg-hstore": "^2.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-h5-audio-player": "^3.9.1",
     "react-router-dom": "^6.23.1"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
+    "@types/better-sqlite3": "^7.6.10",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "@vitejs/plugin-react": "^4.2.1",
