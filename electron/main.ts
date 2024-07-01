@@ -163,14 +163,68 @@ app.on('activate', () => {
 
 let db: Database;
 
+function setupDatabase() {
+  // Create the "User" table
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS User (
+      UserID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Username TEXT NOT NULL UNIQUE
+    )
+  `).run();
+
+  // Create the "Song" table
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS Song (
+      SongID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Title TEXT NOT NULL,
+      FileLocation TEXT NOT NULL
+    )
+  `).run();
+
+  // Create the "Playlist" table (one-to-many relationship with User)
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS Playlist (
+      PlaylistID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Name TEXT NOT NULL,
+      UserID_FK INTEGER NOT NULL,
+      FOREIGN KEY (UserID_FK) REFERENCES User(UserID)
+    )
+  `).run();
+
+  // Many-to-Many "Manages" relationship table between User and Song
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS Manages (
+      UserID_FK INTEGER NOT NULL,
+      SongID_FK INTEGER NOT NULL,
+      FOREIGN KEY (UserID_FK) REFERENCES User(UserID),
+      FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
+      PRIMARY KEY (UserID_FK, SongID_FK)
+    )
+  `).run();
+
+  // Many-to-Many "Contains" relationship table between Song and Playlist 
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS Contains (
+      PlaylistID_FK INTEGER NOT NULL,
+      SongID_FK INTEGER NOT NULL,
+      FOREIGN KEY (PlaylistID_FK) REFERENCES Playlist(PlaylistID),
+      FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
+      PRIMARY KEY (PlaylistID_FK, SongID_FK)
+    )
+  `).run();
+
+  console.log("Database initialized");
+};
+
 app.whenReady().then(() => {
   createWindow();
   // ensure did-finish-load
   setTimeout(() => {
     db = getSqlite3();
-    console.log("database initialized: ", db);
+    console.log("Connected to database: ", db);
+    setupDatabase();
     //win?.webContents.send('main-process-message', `[better-sqlite3] ${JSON.stringify(db.pragma('journal_mode = WAL'))}`);
-  }, 999)
+  }, 999);
 })
 
 //handlers for the database
