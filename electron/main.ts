@@ -1,20 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, protocol, Response as ElectronResponse, session, ProtocolResponse } from 'electron'
 import { fileURLToPath } from 'node:url'
 
-//import path from 'node:path'
 import * as path from 'path'
-//import { getNames } from '../src/Database/models/user-manager'
-//import getNames from "../src/Database/models/user-manager";
 import {Database} from "better-sqlite3";
-//import Database from 'better-sqlite3';
-
 import { getSqlite3 } from './better-sqlite3'
-const __filename = fileURLToPath(import.meta.url);
-//const __filename = import.meta.filename;
-const __dirname = path.dirname(__filename);
 
-//let db: Database = new DatabaseConstructor('./test.db');
-// const db = new Database("../src/Database/music-db.sqlite", { verbose: console.log });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 //TODO: trace warnings
 // process.traceProcessWarnings = true;
@@ -102,8 +94,6 @@ app.whenReady().then(() => {
 // });
 });
 
-//const db = new Database(path.join(__dirname, `../database.db3`));
-
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -133,31 +123,8 @@ function createWindow() {
 
   win.maximize();
 
-  //const dbPath = "C:\Users\jayde\Documents\Personal projects\Local-Music-Player\src\Database\music-db.sqlite";
-  //const dbPath = path.resolve("test.db");
-
-  //const db = new Database('my-database.db', { verbose: console.log });
-
-  //const dbPath = path.join(__dirname, 'data.db');
-
-  // const dbPath =
-  //   process.env.NODE_ENV === "development"
-  //       ? "./demo_table.db"
-  //       : path.join(process.resourcesPath, "./demo_table.db")
-
-  //let db: Database = new DatabaseConstructor("test.db");
-
-  //const db = new Database(dbPath);
-
-  //let nativeLoc = path.join(process.env.APP_ROOT, "node_modules/better-sqlite3/build/Release/better_sqlite3.node");
-  //const db = new DatabaseConstructor('data.db', { nativeBinding: nativeLoc });
-
-  // const db = new Database('foobar.db');
-  // db.pragma("journal_mode = WAL");
-
-  console.log("FILE: ", __filename);
-  console.log("DIR: ", __dirname);
-  console.log("DIR TEST: ", process.env.APP_ROOT);
+  console.log("FILE LOCATION: ", __filename);
+  console.log("DIRECTORY LOCATION: ", __dirname);
 }
 
 // IPC handler for opening file dialog
@@ -175,19 +142,6 @@ ipcMain.handle('open-dir-dialog', async () => {
   });
   return result.filePaths;
 });
-
-// TESTING
-// ipcMain.handle('get-usernames', async () => {
-//   try {
-//     console.log('Fetching usernames...');
-//     const names = await getNames();
-//     console.log('Usernames fetched:', names);
-//     return names;
-//   } catch (error) {
-//     console.error('Error fetching user names:', error);
-//     return { error: 'Failed to fetch user names' };
-//   }
-// });
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -207,10 +161,6 @@ app.on('activate', () => {
   }
 })
 
-
-
-// app.whenReady().then(createWindow)
-
 let db: Database;
 
 app.whenReady().then(() => {
@@ -219,11 +169,11 @@ app.whenReady().then(() => {
   setTimeout(() => {
     db = getSqlite3();
     console.log("database initialized: ", db);
-    win?.webContents.send('main-process-message', `[better-sqlite3] ${JSON.stringify(db.pragma('journal_mode = WAL'))}`);
+    //win?.webContents.send('main-process-message', `[better-sqlite3] ${JSON.stringify(db.pragma('journal_mode = WAL'))}`);
   }, 999)
-
-  console.log("TEST PROCESS COMPLETE");
 })
+
+//handlers for the database
 
 ipcMain.handle('db-create', async() => {
   try {
@@ -246,7 +196,7 @@ ipcMain.handle('db-create', async() => {
 
 ipcMain.handle('get-names', async () => {
   try {
-    //Retrive all rows of results only from the column Username
+    //Retrive all rows of usernames from the table User
     const rows: any = db.prepare('SELECT Username FROM User').all();
     const names = rows.map((row: { Username: any; }) => row.Username);
     return { success: true, data: names };

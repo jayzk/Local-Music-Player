@@ -2,6 +2,19 @@ import React, { useEffect, useState } from "react";
 import 'react-h5-audio-player/lib/styles.css';
 import AudioControls from "../Components/AudioControls";
 
+async function createTable() {
+  try {
+    const result = await window.ipcRenderer.invoke('db-create');
+    if (result.success) {
+      console.log('Table created successfully');
+    } else {
+      console.error('Error creating table:', result.error);
+    }
+  } catch (error) {
+    console.error('Error invoking create table:', error);
+  }
+}
+
 async function fetchNames() {
   try {
     const result = await window.ipcRenderer.invoke('get-names');
@@ -35,24 +48,6 @@ export default function Home() {
       setSelectedDirPath(filePaths[0]);
     }
   };
-
-  async function createTable() {
-    try {
-      const result = await window.ipcRenderer.invoke('db-create');
-      if (result.success) {
-        console.log('Table created successfully');
-      } else {
-        console.error('Error creating table:', result.error);
-      }
-    } catch (error) {
-      console.error('Error invoking create table:', error);
-    }
-  }
-
-  // const fetchUserNames = async () => {
-  //   const names = await window.ipcRenderer.invoke("get-usernames");
-  //   setUserNames(names);
-  // };
 
   const fileUrl = selectedFilePath
     ? `media-loader:///${encodeURIComponent(selectedFilePath)
