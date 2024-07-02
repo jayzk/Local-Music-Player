@@ -1,4 +1,6 @@
 import { Button } from "@headlessui/react";
+import { PauseIcon, PlayIcon, ForwardIcon, BackwardIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/20/solid";
+import Shuffle from "../../public/additional-icons/shuffle.tsx"
 import React, { useEffect, useRef, useState } from "react";
 
 interface AudioControlsProps {
@@ -83,23 +85,53 @@ export default function AudioControls({
   };
 
   return (
-    <div>
+    <div className="flex flex-col w-full items-center">
       <audio ref={audioRef} src={fileUrl} preload="metadata"></audio>
-      <Button
-        onClick={handlePlayPause}
-        className="inline-flex items-center gap-2 rounded-md bg-gray-700 py-1.5 px-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
-      >
-        {isPlaying ? "Pause" : "Play"}
-      </Button>
-      <input
-        type="range"
-        ref={sliderRef}
-        max={duration.toString()}
-        value={currentTime.toString()}
-        onChange={handleSliderChange}
-      />
-      <span>{formatTime(currentTime)}</span> /{" "}
-      <span>{formatTime(duration)}</span>
+      <div className="flex justify-center w-1/2 mb-2 space-x-3 bg-gray-700 rounded-full">
+        <Button
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
+        >
+          <Shuffle />
+        </Button>
+
+        <Button
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
+        >
+          <BackwardIcon className="size-6"/>
+        </Button>
+
+        <Button
+          onClick={handlePlayPause}
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
+        >
+          {isPlaying ? <PauseIcon className="size-6" /> : <PlayIcon className="size-6"/>}
+        </Button>
+
+        <Button
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
+        >
+          <ForwardIcon className="size-6"/>
+        </Button>
+
+        <Button
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
+        >
+          <ArrowPathRoundedSquareIcon className="size-6" />
+        </Button>
+      </div>
+      
+      <div className="flex w-1/2 items-center justify-center space-x-2">
+        <span>{formatTime(currentTime)}</span>
+        <input
+          className="w-full"
+          type="range"
+          ref={sliderRef}
+          max={duration.toString()}
+          value={currentTime.toString()}
+          onChange={handleSliderChange}
+        />
+        <span>{formatTime(duration)}</span>
+      </div>
     </div>
   );
 }

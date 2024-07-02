@@ -17,7 +17,7 @@ export default function Navbar() {
   };
 
   return (
-      <nav className="bg-slate-900 flex flex-col px-2 h-screen w-1/6 items-center drop-shadow-lg">
+      <nav className="bg-slate-900 flex flex-col px-2 w-1/6 items-center drop-shadow-lg">
           <div className="my-3 size-24">
             <img src={logo} />
           </div>
