@@ -30,6 +30,15 @@ async function fetchNames() {
   }
 }
 
+async function fetchSettings() {
+  try {
+    const result = await window.ipcRenderer.invoke('read-settings-data');
+    console.log("Settings test: ", result);
+  } catch (error) {
+    console.error('Error invoking fetch settings:', error);
+  }
+}
+
 export default function Home() {
   const [selectedFilePath, setSelectedFilePath] = useState("");
   const [selectedDirPath, setSelectedDirPath] = useState("");
@@ -52,7 +61,8 @@ export default function Home() {
   const fileUrl = selectedFilePath
     ? `media-loader:///${encodeURIComponent(selectedFilePath)
         .replace(/%3A/g, ":")
-        .replace(/%5C/g, "/")}`
+        .replace(/%5C/g, "/")
+        .replace(/%20/g, " ")}`
     : "";
     
   const fileExtension = selectedFilePath
@@ -62,6 +72,7 @@ export default function Home() {
     useEffect(() => {
       //createTable();
       fetchNames().then(setUserNames);
+      fetchSettings();
       console.log("TABLE CREATED PLS WORK");
     }, []);
 

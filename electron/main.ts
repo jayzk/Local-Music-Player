@@ -2,11 +2,14 @@ import { app, BrowserWindow, dialog, ipcMain, protocol, Response as ElectronResp
 import { fileURLToPath } from 'node:url'
 
 import * as path from 'path'
+import fs from 'fs';
 import {Database} from "better-sqlite3";
 import { getSqlite3 } from './better-sqlite3'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const SETTINGS_DATA_PATH = path.join(app.getPath("userData"), 'settings_data.json');
 
 //TODO: trace warnings
 // process.traceProcessWarnings = true;
@@ -132,6 +135,7 @@ ipcMain.handle('open-file-dialog', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
   });
+  console.log("TEST FILEPATHS: ", result.filePaths);
   return result.filePaths;
 });
 
@@ -141,6 +145,38 @@ ipcMain.handle('open-dir-dialog', async () => {
     properties: ['openDirectory'],
   });
   return result.filePaths;
+});
+
+// Define default settings
+const defaultSettings = {
+  selectedDir: '',
+};
+
+// IPC handler for reading local settings data
+ipcMain.handle('read-settings-data', async () => {
+  try {
+    //check if the settings file exists, if not create it
+    if(!fs.existsSync(SETTINGS_DATA_PATH)) {
+      fs.writeFileSync(SETTINGS_DATA_PATH, JSON.stringify(defaultSettings, null, 2), 'utf-8');
+    }
+
+    //reading the file
+    const data = fs.readFileSync(SETTINGS_DATA_PATH, 'utf-8');
+    return JSON.parse(data); //TODO: may have to just return as a string and parse in the renderer
+  } catch (error) {
+    console.log('Error retrieving settings data: ', error);
+    return null;
+  }
+});
+
+// IPC handler for writing local settings data
+ipcMain.handle('write-settings-data', async (data) => {
+  try {
+    fs.writeFileSync(SETTINGS_DATA_PATH, JSON.stringify(data)); //TODO: check if we can send data as an object
+  } catch (error) {
+    console.log('Error writing to settings data: ', error);
+    return null;
+  }
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -228,25 +264,6 @@ app.whenReady().then(() => {
 })
 
 //handlers for the database
-
-ipcMain.handle('db-create', async() => {
-  try {
-    const statement = `
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      username TEXT NOT NULL UNIQUE
-    )
-  `;
-    
-    db.prepare(statement).run();
-    return { success: true };
-    
-  } catch (error) {
-    console.error('Database query error:', error);
-    return { success: false, error: (error as Error).message };
-  }
-});
 
 ipcMain.handle('get-names', async () => {
   try {
