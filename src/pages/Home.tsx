@@ -2,43 +2,6 @@ import React, { useEffect, useState } from "react";
 import 'react-h5-audio-player/lib/styles.css';
 import AudioControls from "../Components/AudioControls";
 
-async function createTable() {
-  try {
-    const result = await window.ipcRenderer.invoke('db-create');
-    if (result.success) {
-      console.log('Table created successfully');
-    } else {
-      console.error('Error creating table:', result.error);
-    }
-  } catch (error) {
-    console.error('Error invoking create table:', error);
-  }
-}
-
-async function fetchNames() {
-  try {
-    const result = await window.ipcRenderer.invoke('get-names');
-    if (result.success) {
-      return result.data;
-    } else {
-      console.error('Error fetching names:', result.error);
-      return [];
-    }
-  } catch (error) {
-    console.error('Error invoking fetch names:', error);
-    return [];
-  }
-}
-
-async function fetchSettings() {
-  try {
-    const result = await window.ipcRenderer.invoke('read-settings-data');
-    console.log("Settings test: ", result);
-  } catch (error) {
-    console.error('Error invoking fetch settings:', error);
-  }
-}
-
 export default function Home() {
   const [selectedFilePath, setSelectedFilePath] = useState("");
   const [selectedDirPath, setSelectedDirPath] = useState("");
@@ -69,13 +32,6 @@ export default function Home() {
     ? selectedFilePath.split(".").pop()?.toLowerCase()
     : "";
 
-    useEffect(() => {
-      //createTable();
-      fetchNames().then(setUserNames);
-      fetchSettings();
-      console.log("TABLE CREATED PLS WORK");
-    }, []);
-
   //logging file info
   useEffect(() => {
     if (selectedFilePath) {
@@ -87,38 +43,9 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Electron React File Dialog</h1>
-      <button onClick={handleOpenFileDialog}>Open File Dialog</button>
-      {selectedFilePath && <p>Selected Path: {selectedFilePath}</p>}
-
       <h1>Electron React Directory Dialog</h1>
       <button onClick={handleOpenDirDialog}>Open Directory Dialog</button>
       {selectedDirPath && <p>Selected Path: {selectedDirPath}</p>}
-
-      <h1>IMAGE TEST</h1>
-      {/* <img src={selectedFilePath} alt="My Image" /> */}
-      {fileUrl && (
-        <img
-          src={fileUrl}
-          alt="My Image"
-          style={{ maxWidth: "100%", maxHeight: "100%" }}
-        />
-      )}
-
-      {fileUrl &&
-        fileExtension &&
-        (fileExtension === "mp3" ||
-          fileExtension === "wav" ||
-          fileExtension === "ogg") && (
-          <AudioControls fileUrl={fileUrl} />
-        )}
-
-      <h1>User Names from Database</h1>
-      <ul>
-        {userNames.map((user, index) => (
-          <li key={index}>{user}</li>
-        ))}
-      </ul>
     </div>
   );
 }

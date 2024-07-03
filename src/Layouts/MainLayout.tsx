@@ -10,13 +10,13 @@ export default function MainLayout() {
     //     <Outlet/>
     // </>
     <div className='h-screen'>
-      <div className="flex h-[85%]">
+      <div className="flex h-[87%]">
         <Navbar />
-        <div className="w-screen bg-gradient-to-tl from-slate-800 via-purple-700 to-slate-800">
+        <div className="w-screen bg-slate-800">
             <Outlet />
         </div>
       </div>
-      <div className='h-[15%]'>
+      <div className='h-[13%] bg-gradient-to-r from-violet-500 to-fuchsia-500'>
         <BottomPlayer />
       </div>
     </div>

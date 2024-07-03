@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { HomeIcon, MusicalNoteIcon, PlayIcon } from "@heroicons/react/20/solid";
+import { HomeIcon, MusicalNoteIcon, PlayIcon, BoltIcon } from "@heroicons/react/20/solid";
 import logo from "../../public/assets/Logo.png"
 
 export default function Navbar() {
@@ -11,6 +11,8 @@ export default function Navbar() {
         return <MusicalNoteIcon className="size-5 mx-2" />;
       case 'Player':
         return <PlayIcon className="size-5 mx-2" />;
+      case 'Testing':
+        return <BoltIcon className="size-5 mx-2" />
       default:
         return null;
     }
@@ -26,6 +28,7 @@ export default function Navbar() {
               ['Home', '/'],
               ['Music', '/MusicExplorer'],
               ['Player', '/Player'],
+              ['Testing', '/Testing'],
             ].map(([title, url]) => (
               <NavLink key={title} to={url} className="w-full rounded-lg px-3 py-3 text-white font-medium hover:bg-slate-100 hover:text-slate-900">
                 <div className="flex flex-row w-full items-center">
