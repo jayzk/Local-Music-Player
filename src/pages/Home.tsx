@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import 'react-h5-audio-player/lib/styles.css';
-import AudioControls from "../Components/AudioControls";
+import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import NavTop from "../Components/NavTop";
 
 export default function Home() {
   const [selectedFilePath, setSelectedFilePath] = useState("");
@@ -42,7 +43,8 @@ export default function Home() {
   }, [selectedFilePath, fileUrl, fileExtension]);
 
   return (
-    <div>
+    <div className="py-2">
+      <NavTop />
       <h1>Electron React Directory Dialog</h1>
       <button onClick={handleOpenDirDialog}>Open Directory Dialog</button>
       {selectedDirPath && <p>Selected Path: {selectedDirPath}</p>}
