@@ -87,7 +87,7 @@ export default function AudioControls({
   return (
     <div className="flex flex-col w-full items-center">
       <audio ref={audioRef} src={fileUrl} preload="metadata"></audio>
-      <div className="flex justify-center w-1/2 mb-2 space-x-3 bg-gray-700 rounded-full">
+      <div className="flex justify-center w-1/2 mb-2 space-x-3 bg-slate-900 rounded-full">
         <Button
           className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white data-[hover]:bg-gray-600"
         >
@@ -123,7 +123,7 @@ export default function AudioControls({
       <div className="flex w-1/2 items-center justify-center space-x-2">
         <span>{formatTime(currentTime)}</span>
         <input
-          className="w-full"
+          className="range w-full accent-black"
           type="range"
           ref={sliderRef}
           max={duration.toString()}
