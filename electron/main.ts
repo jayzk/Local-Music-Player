@@ -164,6 +164,8 @@ ipcMain.handle('read-settings-data', async () => {
 
     //reading the file
     const data = fs.readFileSync(SETTINGS_DATA_PATH, 'utf-8');
+    console.log("File read from: ", SETTINGS_DATA_PATH);
+    console.log("Settings data: ", data);
     return JSON.parse(data); //TODO: may have to just return as a string and parse in the renderer
   } catch (error) {
     console.log('Error retrieving settings data: ', error);
@@ -172,9 +174,13 @@ ipcMain.handle('read-settings-data', async () => {
 });
 
 // IPC handler for writing local settings data
-ipcMain.handle('write-settings-data', async (data) => {
+ipcMain.handle('write-settings-data', async (event, data) => {
   try {
-    fs.writeFileSync(SETTINGS_DATA_PATH, JSON.stringify(data)); //TODO: check if we can send data as an object
+    //deal with forward slashes as they are considered special chars
+    const JSONdata = data.replace(/\\/g, "/");
+
+    fs.writeFileSync(SETTINGS_DATA_PATH, JSONdata);
+    console.log("Writing data: ", JSONdata);
   } catch (error) {
     console.log('Error writing to settings data: ', error);
     return null;

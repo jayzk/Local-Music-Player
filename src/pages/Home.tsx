@@ -8,13 +8,6 @@ export default function Home() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
   const [userNames, setUserNames] = useState([]);
 
-  const handleOpenFileDialog = async () => {
-    const filePaths = await window.ipcRenderer.invoke("open-file-dialog");
-    if (filePaths.length > 0) {
-      setSelectedFilePath(filePaths[0]);
-    }
-  };
-
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
     if (filePaths.length > 0) {
