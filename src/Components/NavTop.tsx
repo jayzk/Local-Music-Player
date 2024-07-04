@@ -54,7 +54,7 @@ export default function NavTop() {
   }, [selectedDirPath]);
 
   return (
-    <div className="relative flex justify-center border-b-2 border-slate-700 p-3">
+    <div className="relative flex justify-end border-b-2 border-slate-700 p-3 lg:justify-center">
       <div className="absolute left-2 top-0">
         <label className="mb-2 block text-sm text-gray-900 dark:text-white">
           Select Music Directory
@@ -73,15 +73,13 @@ export default function NavTop() {
           />
         </div>
       </div>
-      <form>
-        <div className="relative flex">
-          <input
-            className="peer h-10 rounded-lg border-2 border-slate-600 bg-slate-600 px-5 pl-10 text-sm text-white caret-white outline-none transition duration-200 focus:border-white"
-            placeholder="Search"
-          />
-          <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
-        </div>
-      </form>
+      <div className="relative flex">
+        <input
+          className="peer h-10 rounded-lg border-2 border-slate-600 bg-slate-600 px-5 pl-10 text-sm text-white caret-white outline-none transition duration-200 focus:border-white"
+          placeholder="Search"
+        />
+        <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
+      </div>
     </div>
   );
 }
