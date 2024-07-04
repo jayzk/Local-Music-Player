@@ -99,7 +99,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       console.log("handleSliderChange -> setting slide time to: ", newTime);
       console.log(
         "handleSliderChange -> setting audio.currentTime to: ",
-        audio.currentTime
+        audio.currentTime,
       );
     }
   };
@@ -114,30 +114,23 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       console.log("setting volume time to: ", newVol);
       console.log("audio.volume is: ", audio.volume);
     }
-  }
+  };
 
   return (
-    <div className="flex flex-col w-full items-center">
+    <div className="flex w-full flex-col items-center">
       <audio ref={audioRef} src={fileUrl} preload="metadata"></audio>
-      <div className="flex relative xl:justify-center w-[80%] lg:w-[60%] mb-2 space-x-3 bg-slate-900 rounded-full">
-        <Button
-          className="transition inline-flex items-center justify-center gap-2 rounded-full p-3 ml-20 xl:ml-2 text-sm/6 font-semibold text-white 
-          data-[hover]:bg-gray-600 hover:scale-110"
-        >
+      <div className="relative mb-2 flex w-[80%] space-x-3 rounded-full bg-slate-900 lg:w-[60%] xl:justify-center">
+        <Button className="ml-20 inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600 xl:ml-2">
           <Shuffle />
         </Button>
 
-        <Button
-          className="transition inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white 
-          data-[hover]:bg-gray-600 hover:scale-110"
-        >
+        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
           <BackwardIcon className="size-6" />
         </Button>
 
         <Button
           onClick={handlePlayPause}
-          className="transition delay-50 inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold 
-          text-white data-[hover]:bg-gray-600 hover:scale-110"
+          className="delay-50 inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
         >
           {isPlaying ? (
             <PauseIcon className="size-6" />
@@ -146,35 +139,27 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
           )}
         </Button>
 
-        <Button
-          className="transition inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold 
-          text-white data-[hover]:bg-gray-600 hover:scale-110"
-        >
+        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
           <ForwardIcon className="size-6" />
         </Button>
 
-        <Button
-          className="transition inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold 
-          text-white data-[hover]:bg-gray-600 hover:scale-110"
-        >
+        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
           <ArrowPathRoundedSquareIcon className="size-6" />
         </Button>
 
-        <div className="flex absolute right-5 space-x-2 mr-2">
-          <Button
-            className="transition inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold 
-            text-white data-[hover]:bg-gray-600 hover:scale-110"
-          >
+        <div className="absolute right-5 mr-2 flex space-x-2">
+          <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
             <SpeakerWaveIcon className="size-6" />
           </Button>
 
-          <input className="range"
-                type="range"
-                ref={volSliderRef}
-                max="1"
-                step="0.01"
-                value={currentVol.toString()}
-                onChange={handleVolChange}
+          <input
+            className="range"
+            type="range"
+            ref={volSliderRef}
+            max="1"
+            step="0.01"
+            value={currentVol.toString()}
+            onChange={handleVolChange}
           />
         </div>
       </div>
