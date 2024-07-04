@@ -20,6 +20,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentVol, setCurrentVol] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
@@ -89,6 +90,20 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     }
   };
 
+  const handleMute = () => {
+    const audio = audioRef.current;
+    if(audio) {
+      if(isMuted) {
+        audio.volume = Number(volSliderRef.current?.value);
+        console.log("Volume on");
+      } else {
+        audio.volume = 0;
+        console.log("Volume off");
+      }
+      setIsMuted(!isMuted);
+    }
+  }
+
   const handleTimeChange = () => {
     const audio = audioRef.current;
     if (audio && timeSliderRef.current) {
@@ -108,7 +123,8 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     const audio = audioRef.current;
     if (audio && volSliderRef.current) {
       const newVol = Number(volSliderRef.current?.value);
-      audio.volume = newVol;
+      if(!isMuted)
+        audio.volume = newVol;
       setCurrentVol(newVol); //used to update the slider render only
 
       console.log("setting volume time to: ", newVol);
@@ -148,8 +164,9 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         </Button>
 
         <div className="absolute right-5 mr-2 flex space-x-2">
-          <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
-            <SpeakerWaveIcon className="size-6" />
+          <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
+            onClick={handleMute}>
+              {isMuted ? (<SpeakerXMarkIcon className="size-6" />) : (<SpeakerWaveIcon className="size-6" />)}
           </Button>
 
           <input
