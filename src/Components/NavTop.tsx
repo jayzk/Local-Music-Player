@@ -1,55 +1,43 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import React, { useEffect, useState } from "react";
 
-async function fetchSettings() {
-  try {
-    const result = await window.ipcRenderer.invoke("read-settings-data");
-    return result;
-  } catch (error) {
-    console.error("Error invoking fetch settings:", error);
-    return null;
-  }
-}
+type NavTopProps = {
+  settingsData: any;
+  setSettingsData: React.Dispatch<any>;
+};
 
-export default function NavTop() {
+export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
   const [selectedDirPath, setSelectedDirPath] = useState("");
-  const [settingsData, setSettingsData] = useState<any | null>(null);
 
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
     if (filePaths.length > 0) {
       setSelectedDirPath(filePaths[0]); //update for rendering
 
-      const data = `{"selectedDir": "${filePaths[0]}"}`;
+      //construct object (TODO: think of an easier way to do this)
+      const data = `{"selectedDir": "${filePaths[0]}"}`.replace(/\\/g, "/"); //deal with forward slashes as they are considered special chars
 
-      console.log("Sending object to settings file: ", data);
+      //update settings data to let parent component know
+      setSettingsData(JSON.parse(data));
+
+      //write to the settings file (TODO: will this update Home.tsx ???)
+      console.log("NavTop -> Sending object to settings file: ", data);
       await window.ipcRenderer.invoke("write-settings-data", data);
     }
   };
 
-  //run on render
-  useEffect(() => {
-    const getSettings = async () => {
-      const data = await fetchSettings();
-      setSettingsData(data);
-      setSelectedDirPath(data.selectedDir);
-    };
-
-    getSettings();
-    console.log("Feteched settings: ", settingsData);
-  }, []);
-
-  //log settings info
+  //re-render when settingsData updates
   useEffect(() => {
     if (settingsData) {
-      console.log("Settings Data: ", settingsData);
+      console.log("NavTop -> Passed settings: ", settingsData);
+      setSelectedDirPath(settingsData?.selectedDir); //used for rendering
     }
   }, [settingsData]);
 
   //logging dir info
   useEffect(() => {
     if (selectedDirPath) {
-      console.log("Selected Dir: ", selectedDirPath);
+      console.log("NavTop -> Selected Dir: ", selectedDirPath);
     }
   }, [selectedDirPath]);
 

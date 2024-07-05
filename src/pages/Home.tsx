@@ -1,46 +1,46 @@
 import React, { useEffect, useState } from "react";
-import 'react-h5-audio-player/lib/styles.css';
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import "react-h5-audio-player/lib/styles.css";
 import NavTop from "../Components/NavTop";
+import DisplayHome from "../Components/DisplayHome";
+
+async function fetchSettings() {
+  try {
+    const result = await window.ipcRenderer.invoke("read-settings-data");
+    return result;
+  } catch (error) {
+    console.error("Home -> Error invoking fetch settings:", error);
+    return null;
+  }
+}
 
 export default function Home() {
-  const [selectedFilePath, setSelectedFilePath] = useState("");
-  const [selectedDirPath, setSelectedDirPath] = useState("");
-  const [userNames, setUserNames] = useState([]);
+  const [settingsData, setSettingsData] = useState<any | null>(null);
 
-  const handleOpenDirDialog = async () => {
-    const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
-    if (filePaths.length > 0) {
-      setSelectedDirPath(filePaths[0]);
-    }
-  };
-
-  const fileUrl = selectedFilePath
-    ? `media-loader:///${encodeURIComponent(selectedFilePath)
-        .replace(/%3A/g, ":")
-        .replace(/%5C/g, "/")
-        .replace(/%20/g, " ")}`
-    : "";
-    
-  const fileExtension = selectedFilePath
-    ? selectedFilePath.split(".").pop()?.toLowerCase()
-    : "";
-
-  //logging file info
+  //run on mount
   useEffect(() => {
-    if (selectedFilePath) {
-      console.log("Incoming file information");
-      console.log("fileUrl: ", fileUrl);
-      console.log("fileExtension: ", fileExtension);
+    const getSettings = async () => {
+      const data = await fetchSettings();
+      setSettingsData(data);
+    };
+
+    getSettings();
+  }, []);
+
+  //log settings info
+  useEffect(() => {
+    if (settingsData) {
+      console.log("Home -> Settings Data: ", settingsData);
     }
-  }, [selectedFilePath, fileUrl, fileExtension]);
+  }, [settingsData]);
 
   return (
-    <div className="py-2">
-      <NavTop />
-      <h1>Electron React Directory Dialog</h1>
-      <button onClick={handleOpenDirDialog}>Open Directory Dialog</button>
-      {selectedDirPath && <p>Selected Path: {selectedDirPath}</p>}
+    <div className="h-full py-2">
+      <div className="h-[10%]">
+        <NavTop settingsData={settingsData} setSettingsData={setSettingsData} />
+      </div>
+      <div className="h-[90%]">
+        <DisplayHome settingsData={settingsData} />
+      </div>
     </div>
   );
 }

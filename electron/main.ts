@@ -176,11 +176,9 @@ ipcMain.handle('read-settings-data', async () => {
 // IPC handler for writing local settings data
 ipcMain.handle('write-settings-data', async (event, data) => {
   try {
-    //deal with forward slashes as they are considered special chars
-    const JSONdata = data.replace(/\\/g, "/");
-
-    fs.writeFileSync(SETTINGS_DATA_PATH, JSONdata);
-    console.log("Writing data: ", JSONdata);
+    //writing to file
+    fs.writeFileSync(SETTINGS_DATA_PATH, data);
+    console.log("Writing data: ", data);
   } catch (error) {
     console.log('Error writing to settings data: ', error);
     return null;
