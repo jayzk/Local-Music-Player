@@ -11,12 +11,18 @@ const root = path.join(__dirname, '..')
 const TAG = '[better-sqlite3]'
 let database: Database.Database
 
-//TODO: put database in appdata/roaming ???
-export function getSqlite3(filename = path.join(root, 'music-db.sqlite')) {
-  console.log("FILENAME DATA: ", filename)
-  return database ??= new Database(filename, {
-    // https://github.com/WiseLibs/better-sqlite3/blob/v8.5.2/lib/database.js#L36
-    // https://github.com/WiseLibs/better-sqlite3/blob/v8.5.2/lib/database.js#L50
-    nativeBinding: path.join(root, import.meta.env.VITE_BETTER_SQLITE3_BINDING),
-  })
+export function getSqlite3(filename: string) {
+  return new Promise((resolve, reject) => {
+    try {
+      console.log("FILENAME DATA: ", filename);
+      const database = new Database(filename, {
+        // https://github.com/WiseLibs/better-sqlite3/blob/v8.5.2/lib/database.js#L36
+        // https://github.com/WiseLibs/better-sqlite3/blob/v8.5.2/lib/database.js#L50
+        nativeBinding: path.join(root, import.meta.env.VITE_BETTER_SQLITE3_BINDING),
+      });
+      resolve(database);
+    } catch (error) {
+      reject(error);
+    }
+  });
 }

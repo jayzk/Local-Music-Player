@@ -11,6 +11,9 @@ const __dirname = path.dirname(__filename);
 
 const SETTINGS_DATA_PATH = path.join(app.getPath("userData"), 'settings_data.json');
 
+//for formatting logs
+const divider = "============================";
+
 //TODO: trace warnings
 // process.traceProcessWarnings = true;
 // process.on('uncaughtException', function (error) {
@@ -122,14 +125,49 @@ function createWindow() {
   }
 
   // Open the DevTools in development mode
-  // if (process.env.NODE_ENV === 'development') {
-  //   win.webContents.openDevTools();
-  // }
+  if (process.env.NODE_ENV === 'development') {
+    win.webContents.openDevTools();
+  }
 
   win.maximize();
 
+  console.log(divider);
   console.log("FILE LOCATION: ", __filename);
   console.log("DIRECTORY LOCATION: ", __dirname);
+  console.log(divider);
+}
+
+// HANDLING FILES
+function readSettings(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      const data = fs.readFileSync(SETTINGS_DATA_PATH, 'utf-8');
+
+      console.log(divider);
+      console.log("File read from: ", SETTINGS_DATA_PATH);
+      console.log("Settings data: ", data);
+      console.log(divider);
+      
+      if(data)
+        resolve(JSON.parse(data));
+    } catch (error) {
+      reject(error);
+    }
+  })
+}
+
+
+
+// Function to get all files in the selected directory
+function getAllFilesInDirectory(dirPath: string): string[] {
+  // Read the directory contents
+  const files = fs.readdirSync(dirPath);
+
+  // Filter out directories and return only files
+  return files.filter(file => {
+    const filePath = path.join(dirPath, file);
+    return fs.statSync(filePath).isFile();
+  });
 }
 
 // IPC handler for opening file dialog
@@ -162,11 +200,8 @@ ipcMain.handle('read-settings-data', async () => {
       fs.writeFileSync(SETTINGS_DATA_PATH, JSON.stringify(defaultSettings, null, 2), 'utf-8');
     }
 
-    //reading the file
-    const data = fs.readFileSync(SETTINGS_DATA_PATH, 'utf-8');
-    console.log("File read from: ", SETTINGS_DATA_PATH);
-    console.log("Settings data: ", data);
-    return JSON.parse(data); //TODO: may have to just return as a string and parse in the renderer
+    //return settings
+    return readSettings();
   } catch (error) {
     console.log('Error retrieving settings data: ', error);
     return null;
@@ -178,7 +213,9 @@ ipcMain.handle('write-settings-data', async (event, data) => {
   try {
     //writing to file
     fs.writeFileSync(SETTINGS_DATA_PATH, data);
+    console.log(divider);
     console.log("Writing data: ", data);
+    console.log(divider);
   } catch (error) {
     console.log('Error writing to settings data: ', error);
     return null;
@@ -203,11 +240,12 @@ app.on('activate', () => {
   }
 })
 
-let db: Database;
+// HANDLING DATABASE
+let db: Database | null;
 
-function setupDatabase() {
+function setupDatabase(database: Database) {
   // Create the "User" table
-  db.prepare(`
+  database?.prepare(`
     CREATE TABLE IF NOT EXISTS User (
       UserID INTEGER PRIMARY KEY AUTOINCREMENT,
       Username TEXT NOT NULL UNIQUE
@@ -215,7 +253,7 @@ function setupDatabase() {
   `).run();
 
   // Create the "Song" table
-  db.prepare(`
+  database?.prepare(`
     CREATE TABLE IF NOT EXISTS Song (
       SongID INTEGER PRIMARY KEY AUTOINCREMENT,
       Title TEXT NOT NULL,
@@ -224,7 +262,7 @@ function setupDatabase() {
   `).run();
 
   // Create the "Playlist" table (one-to-many relationship with User)
-  db.prepare(`
+  database?.prepare(`
     CREATE TABLE IF NOT EXISTS Playlist (
       PlaylistID INTEGER PRIMARY KEY AUTOINCREMENT,
       Name TEXT NOT NULL,
@@ -234,7 +272,7 @@ function setupDatabase() {
   `).run();
 
   // Many-to-Many "Manages" relationship table between User and Song
-  db.prepare(`
+  database?.prepare(`
     CREATE TABLE IF NOT EXISTS Manages (
       UserID_FK INTEGER NOT NULL,
       SongID_FK INTEGER NOT NULL,
@@ -245,7 +283,7 @@ function setupDatabase() {
   `).run();
 
   // Many-to-Many "Contains" relationship table between Song and Playlist 
-  db.prepare(`
+  database?.prepare(`
     CREATE TABLE IF NOT EXISTS Contains (
       PlaylistID_FK INTEGER NOT NULL,
       SongID_FK INTEGER NOT NULL,
@@ -260,21 +298,55 @@ function setupDatabase() {
 
 app.whenReady().then(() => {
   createWindow();
-  // ensure did-finish-load
-  setTimeout(() => {
-    db = getSqlite3();
-    console.log("Connected to database: ", db);
-    setupDatabase();
-    //win?.webContents.send('main-process-message', `[better-sqlite3] ${JSON.stringify(db.pragma('journal_mode = WAL'))}`);
-  }, 999);
+
 })
 
 //handlers for the database
+ipcMain.handle('create-database', async () => {
+  try {
+    const settingsData = await readSettings();
+    const selectedDB = path.join(settingsData?.selectedDir, 'music-db.sqlite');
+    db = await getSqlite3(selectedDB) as Database;
+    console.log("Connected to database: ", db);
+    setupDatabase(db);
+  } catch (error) {
+    console.error("ERROR: ", error);
+  }
+    
+});
+
+//IPC handler for checking for sqlite files
+ipcMain.handle('sqlite-file-exists', async () => {
+  const settingsData = await readSettings();
+  console.log("SELECTED DIRECTORY PATH: ", settingsData?.selectedDir);
+
+  if(settingsData.selectedDir || settingsData.selectedDir !== "") {
+    //check for .sqlite file
+    const files = fs.readdirSync(settingsData?.selectedDir);
+    console.log("FILES IN DIRECTORY PATH: ", files);
+    const sqliteFile = files.find(file => path.extname(file) === '.sqlite');
+
+    if (sqliteFile) {
+      console.log(`Found .sqlite file: ${sqliteFile}`);
+
+      const selectedDir = path.join(settingsData?.selectedDir, sqliteFile);
+      db = await getSqlite3(selectedDir) as Database;
+
+      console.log("Connected to new database: ", db);
+      return true;
+    } else {
+      console.log('No .sqlite file found in the directory.');
+      return false;
+    }
+  } else {
+    return false;
+  }
+});
 
 ipcMain.handle('get-names', async () => {
   try {
     //Retrive all rows of usernames from the table User
-    const rows: any = db.prepare('SELECT Username FROM User').all();
+    const rows: any = db?.prepare('SELECT Username FROM User').all();
     const names = rows.map((row: { Username: any; }) => row.Username);
     return { success: true, data: names };
   } catch (error) {
@@ -282,3 +354,5 @@ ipcMain.handle('get-names', async () => {
     return { success: false, error: (error as Error).message };
   }
 });
+
+
