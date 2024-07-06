@@ -16,7 +16,7 @@ export default function MainLayout() {
             <Outlet />
         </div>
       </div>
-      <div className='h-[13%] bg-gradient-to-r from-violet-500 to-fuchsia-500'>
+      <div className='h-[13%] bg-gradient-to-t from-violet-500 to-fuchsia-500'>
         <BottomPlayer />
       </div>
     </div>
