@@ -22,30 +22,37 @@ export default function () {
       };
 
   return (
-    <div className='h-full overflow-hidden overflow-y-auto scroller'>
-        <table className="table-fixed w-full">
-            <thead className='text-left text-slate-300'>
-                <tr>
-                <th className='w-[5%]'>#</th>
-                <th>Song</th>
-                <th>Artist</th>
-                <th>Year</th>
-                </tr>
-            </thead>
-            <tbody className='text-slate-100'>
-                {testData.map((song, index) => (
-                <tr className='hover:bg-slate-600 cursor-pointer' onClick={() => handleRowClick(song)}>
-                    <td className='w-[5%]'>{index+1}</td>
-                    <td className='flex items-center'>
-                        <img src={defaultThumbNail} className='size-10 mr-2' />
-                        {song.song}
-                    </td>
-                    <td>{song.artist}</td>
-                    <td>{song.year}</td>
-                </tr>
-                ))}
-            </tbody>
-        </table>
+    <div className='h-full'>
+        <div className='h-[10%]'>
+            <table className="table-fixed w-full">
+                <thead className='text-left text-slate-300'>
+                    <tr>
+                    <th className='w-[5%]'>#</th>
+                    <th>Song</th>
+                    <th>Artist</th>
+                    <th>Year</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div className='h-[90%] overflow-hidden overflow-y-auto scroller'>
+            <table className="table-fixed w-full">
+                <tbody className='text-slate-100'>
+                    {testData.map((song, index) => (
+                    <tr className='hover:bg-slate-600 cursor-pointer' onClick={() => handleRowClick(song)}>
+                        <td className='w-[5%]'>{index+1}</td>
+                        <td className='flex items-center'>
+                            <img src={defaultThumbNail} className='size-10 mr-2' />
+                            {song.song}
+                        </td>
+                        <td>{song.artist}</td>
+                        <td>{song.year}</td>
+                    </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     </div>
+    
   )
 }
