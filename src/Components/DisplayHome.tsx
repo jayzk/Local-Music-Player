@@ -1,8 +1,8 @@
 import {
   FolderIcon,
-  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
+import DisplayConfirm from "./DisplayConfirm";
 
 type DisplayHomeProps = {
   settingsData: any;
@@ -33,12 +33,11 @@ export default function DisplayHome({ settingsData }: DisplayHomeProps) {
     checkSqliteFile();
   }, [settingsData]);
 
-  const handleConfirm = async () => {
-    setIsConfirmed(!isConfirmed);
-    console.log("Confirm btn pressed, confirm = ", isConfirmed);
-
-    await window.ipcRenderer.invoke("create-database");
-  };
+  const testData = [
+    { song: "The Sliding Mr. Bones (Next Stop, Pottersville)", artist: "Malcolm Lockyer", year: 1961 },
+    { song: "Witchy Woman", artist: "The Eagles", year: 1972 },
+    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 }
+  ];
 
   if (!settingsData || settingsData?.selectedDir === "") {
     //No directory/folder is selected
@@ -54,20 +53,7 @@ export default function DisplayHome({ settingsData }: DisplayHomeProps) {
         {isConfirmed || isInitialized ? (
           <p>test</p>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center text-gray-400">
-            <QuestionMarkCircleIcon className="size-48 animate-bounce" />
-            <p>
-              Confirm and initialize this directory/folder as your music
-              directory?
-            </p>
-            <p>(A database file will be added in this directory/folder)</p>
-            <button
-              className="m-2 rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500"
-              onClick={handleConfirm}
-            >
-              Confirm
-            </button>
-          </div>
+          <DisplayConfirm isConfirmed={isConfirmed} setIsConfirmed={setIsConfirmed} />
         )}
       </div>
     );
