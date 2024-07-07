@@ -3,6 +3,7 @@ import {
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import DisplayConfirm from "./DisplayConfirm";
+import SongTable from "./SongTable";
 
 type DisplayHomeProps = {
   settingsData: any;
@@ -33,11 +34,7 @@ export default function DisplayHome({ settingsData }: DisplayHomeProps) {
     checkSqliteFile();
   }, [settingsData]);
 
-  const testData = [
-    { song: "The Sliding Mr. Bones (Next Stop, Pottersville)", artist: "Malcolm Lockyer", year: 1961 },
-    { song: "Witchy Woman", artist: "The Eagles", year: 1972 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 }
-  ];
+  
 
   if (!settingsData || settingsData?.selectedDir === "") {
     //No directory/folder is selected
@@ -51,7 +48,7 @@ export default function DisplayHome({ settingsData }: DisplayHomeProps) {
     return (
       <div className="h-full">
         {isConfirmed || isInitialized ? (
-          <p>test</p>
+          <SongTable />
         ) : (
           <DisplayConfirm isConfirmed={isConfirmed} setIsConfirmed={setIsConfirmed} />
         )}

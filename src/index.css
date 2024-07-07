@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  th {
+    @apply p-3 border-b;
+  }
+
+  td {
+    @apply px-3 py-2;
+  }
+
+  /* td,
+  th {
+    @apply p-3;
+  } */
+}
+
+.scroller {
+  scrollbar-color: red orange;
+  scrollbar-width: thin;
+}
+
+/* .thead-seperator {
+  @apply p-5 border-b;
+} */
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
