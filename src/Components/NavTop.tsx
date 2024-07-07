@@ -14,15 +14,14 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
     if (filePaths.length > 0) {
       setSelectedDirPath(filePaths[0]); //update for rendering
 
-      //construct object (TODO: think of an easier way to do this)
-      const data = `{"selectedDir": "${filePaths[0]}"}`.replace(/\\/g, "/"); //deal with forward slashes as they are considered special chars
+      //get new directory
+      console.log("New directory selected: ", filePaths[0]);
+      await window.ipcRenderer.invoke("update-directory-settings", filePaths[0]);
 
       //update settings data to let parent component know
-      setSettingsData(JSON.parse(data));
-
-      //write to the settings file (TODO: will this update Home.tsx ???)
-      console.log("NavTop -> Sending object to settings file: ", data);
-      await window.ipcRenderer.invoke("write-settings-data", data);
+      const newSettingsData = await window.ipcRenderer.invoke("read-settings-data");
+      console.log("New settings: ", newSettingsData);
+      setSettingsData(newSettingsData);
     }
   };
 

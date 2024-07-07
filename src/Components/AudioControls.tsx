@@ -22,20 +22,41 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [currentVol, setCurrentVol] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
+  const [settingsData, setSettingsData] = useState<any | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
   const volSliderRef = useRef<HTMLInputElement | null>(null);
 
-  //functions for music player
+  //run on mount
+  useEffect(() => {
+    const getSettings = async () => {
+      const data = await window.ipcRenderer.invoke("read-settings-data");
+      setSettingsData(data);
+    };
+
+    getSettings();
+  }, []);
+
+  //run whenever settingsData changes
+  useEffect(() => {
+    console.log("Running audio setting updates");
+    const audio = audioRef.current;
+
+    if (audio && settingsData) {
+      audio.volume = settingsData?.volume;
+      setCurrentVol(audio.volume);
+      console.log("Volume from settings: ", settingsData?.volume);
+      console.log("Current volume: ", audio.volume);
+    }
+  }, [settingsData]);
+
+  //functions for music player (run on mount as well)
   useEffect(() => {
     console.log("Running time updates");
     const audio = audioRef.current;
 
     if (audio) {
-      //setting current volume
-      setCurrentVol(audio.volume);
-      console.log("Current volume: ", audio.volume);
-
       const updateCurrentTime = () => {
         //continously update the slider as the audio plays
         setCurrentTime(audio.currentTime);
@@ -47,25 +68,16 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         console.log("Max audio duration: ", audio.duration);
       };
 
-      // const updateVolume = () => {
-      //   setCurrentVol(audio.volume);
-      //   console.log("Current volume: ", audio.volume);
-      // }
-
       //once metadata has been loaded, update the duration
       audio.addEventListener("loadedmetadata", updateDuration);
 
       //listen for when currentTime has been updated
       audio.addEventListener("timeupdate", updateCurrentTime);
 
-      //listen for when volume has been updated
-      //audio.addEventListener("volumechange", updateVolume);
-
       //cleanup
       return () => {
         audio.removeEventListener("loadedmetadata", updateDuration);
         audio.removeEventListener("timeupdate", updateCurrentTime);
-        //audio.removeEventListener("volumechange", updateVolume);
       };
     }
   }, []);
@@ -92,8 +104,8 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
 
   const handleMute = () => {
     const audio = audioRef.current;
-    if(audio) {
-      if(isMuted) {
+    if (audio) {
+      if (isMuted) {
         audio.volume = Number(volSliderRef.current?.value);
         console.log("Volume on");
       } else {
@@ -102,7 +114,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       }
       setIsMuted(!isMuted);
     }
-  }
+  };
 
   const handleTimeChange = () => {
     const audio = audioRef.current;
@@ -119,13 +131,15 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     }
   };
 
-  const handleVolChange = () => {
+  const handleVolChange = async () => {
     const audio = audioRef.current;
     if (audio && volSliderRef.current) {
       const newVol = Number(volSliderRef.current?.value);
-      if(!isMuted)
+      if (!isMuted) {
         audio.volume = newVol;
+      }
       setCurrentVol(newVol); //used to update the slider render only
+      await window.ipcRenderer.invoke("update-volume-settings", newVol); //update new volume in settings
 
       console.log("setting volume time to: ", newVol);
       console.log("audio.volume is: ", audio.volume);
@@ -164,9 +178,15 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         </Button>
 
         <div className="absolute right-5 mr-2 flex space-x-2">
-          <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
-            onClick={handleMute}>
-              {isMuted ? (<SpeakerXMarkIcon className="size-6" />) : (<SpeakerWaveIcon className="size-6" />)}
+          <Button
+            className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
+            onClick={handleMute}
+          >
+            {isMuted ? (
+              <SpeakerXMarkIcon className="size-6" />
+            ) : (
+              <SpeakerWaveIcon className="size-6" />
+            )}
           </Button>
 
           <input
