@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import { MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/20/solid";
 import React, { useEffect, useState } from "react";
 
 type NavTopProps = {
@@ -49,7 +49,7 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
         <div>
           <button
             onClick={handleOpenDirDialog}
-            className="rounded-l-lg bg-slate-100 p-1 px-2 text-sm text-black hover:bg-slate-300"
+            className="rounded-l-lg bg-indigo-600 p-1 px-2 text-sm text-white hover:bg-indigo-500"
           >
             Browse
           </button>
@@ -66,6 +66,16 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
           placeholder="Search"
         />
         <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
+      </div>
+      <div className="absolute right-20 top-2.5">
+          <button
+            className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500"
+          >
+            <div className="flex group items-center justify-center">
+              <ArrowPathIcon className="size-5 mr-1 group-hover:animate-[spin_1s_ease-in-out_infinite]" />
+              Refresh Music Folder
+            </div>
+          </button>
       </div>
     </div>
   );

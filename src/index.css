@@ -10,16 +10,21 @@
   td {
     @apply px-3 py-2;
   }
-
-  /* td,
-  th {
-    @apply p-3;
-  } */
 }
 
-.scroller {
-  scrollbar-color: red orange;
-  scrollbar-width: thin;
+.scroller::-webkit-scrollbar {
+  /* scrollbar-color: red orange; */
+  @apply w-2;
+}
+
+.scroller::-webkit-scrollbar-track {
+  @apply bg-slate-800;
+}
+
+.scroller::-webkit-scrollbar-thumb {
+  @apply bg-slate-400 hover:bg-slate-200;
+  border-left:3px solid transparent;
+  background-clip: padding-box;
 }
 
 /* .thead-seperator {
