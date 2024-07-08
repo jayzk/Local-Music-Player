@@ -35,10 +35,10 @@ export default function Home() {
 
   return (
     <div className="h-full py-2">
-      <div className="h-[10%]">
+      <div className="h-[30%] lg:h-[10%]">
         <NavTop settingsData={settingsData} setSettingsData={setSettingsData} />
       </div>
-      <div className="h-[90%]">
+      <div className="h-[70%] lg:h-[90%]">
         <DisplayHome settingsData={settingsData} />
       </div>
     </div>

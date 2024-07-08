@@ -16,10 +16,14 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
 
       //get new directory
       console.log("New directory selected: ", filePaths[0]);
-      await window.ipcRenderer.invoke("update-directory-settings", filePaths[0]);
+      await window.ipcRenderer.invoke(
+        "update-directory-settings",
+        filePaths[0],
+      );
 
       //update settings data to let parent component know
-      const newSettingsData = await window.ipcRenderer.invoke("read-settings-data");
+      const newSettingsData =
+        await window.ipcRenderer.invoke("read-settings-data");
       console.log("New settings: ", newSettingsData);
       setSettingsData(newSettingsData);
     }
@@ -41,8 +45,8 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
   }, [selectedDirPath]);
 
   return (
-    <div className="relative flex justify-end border-b-2 border-slate-700 p-3 lg:justify-center">
-      <div className="absolute left-2 top-0">
+    <div className="relative flex flex-col items-center justify-center space-y-2 border-b-2 border-slate-700 p-3 lg:flex-row lg:justify-center">
+      <div className="lg:absolute lg:left-2 lg:top-0">
         <label className="mb-2 block text-sm text-gray-900 dark:text-white">
           Select Music Directory
         </label>
@@ -67,15 +71,13 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
         />
         <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
       </div>
-      <div className="absolute right-20 top-2.5">
-          <button
-            className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500"
-          >
-            <div className="flex group items-center justify-center">
-              <ArrowPathIcon className="size-5 mr-1 group-hover:animate-[spin_1s_ease-in-out_infinite]" />
-              Refresh Music Folder
-            </div>
-          </button>
+      <div className="lg:absolute lg:right-20 lg:top-2">
+        <button className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500">
+          <div className="group flex items-center justify-center">
+            <ArrowPathIcon className="mr-1 size-5 group-hover:animate-[spin_1s_ease-in-out_infinite]" />
+            Refresh Music Folder
+          </div>
+        </button>
       </div>
     </div>
   );

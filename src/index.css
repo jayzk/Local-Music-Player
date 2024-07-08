@@ -4,7 +4,7 @@
 
 @layer utilities {
   th {
-    @apply p-3 border-b;
+    @apply border-b p-2 lg:p-3 lg:py-4;
   }
 
   td {
@@ -23,7 +23,7 @@
 
 .scroller::-webkit-scrollbar-thumb {
   @apply bg-slate-400 hover:bg-slate-200;
-  border-left:3px solid transparent;
+  border-left: 3px solid transparent;
   background-clip: padding-box;
 }
 
