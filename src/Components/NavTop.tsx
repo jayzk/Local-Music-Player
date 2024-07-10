@@ -29,6 +29,10 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
     }
   };
 
+  const handleRefresh = async () => {
+    await window.ipcRenderer.invoke("test-command");
+  };
+
   //re-render when settingsData updates
   useEffect(() => {
     if (settingsData) {
@@ -72,7 +76,7 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
         <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
       </div>
       <div className="lg:absolute lg:right-20 lg:top-2">
-        <button className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500">
+        <button className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500" onClick={handleRefresh}>
           <div className="group flex items-center justify-center">
             <ArrowPathIcon className="mr-1 size-5 group-hover:animate-[spin_1s_ease-in-out_infinite]" />
             Refresh Music Folder

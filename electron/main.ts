@@ -15,9 +15,15 @@ import fs from "fs";
 import { Database } from "better-sqlite3";
 import { getSqlite3 } from "./better-sqlite3";
 import { readSettings, writeSettings, updateVolume, updateSelectedDir } from "./settings";
+import { spawn } from 'child_process';
+
+const ffmpegPath = require('ffmpeg-static'); //using import gives the wrong file path to the executable
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const ytDlpPath = path.join(__dirname, "..", "bin", "yt-dlp.exe");
+const ffmpegPathDir = path.join(ffmpegPath, "..");
 
 const SETTINGS_DATA_PATH = path.join(
   app.getPath("userData"),
@@ -150,6 +156,7 @@ function createWindow() {
   console.log(divider);
   console.log("FILE LOCATION: ", __filename);
   console.log("DIRECTORY LOCATION: ", __dirname);
+  console.log("FFMPEG BINARY LOCATION: ", ffmpegPath);
   console.log(divider);
 }
 
@@ -276,16 +283,16 @@ let db: Database | null;
 
 function setupDatabase(database: Database) {
   // Create the "User" table
-  database
-    ?.prepare(
-      `
-    CREATE TABLE IF NOT EXISTS User (
-      UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-      Username TEXT NOT NULL UNIQUE
-    )
-  `,
-    )
-    .run();
+  // database
+  //   ?.prepare(
+  //     `
+  //   CREATE TABLE IF NOT EXISTS User (
+  //     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
+  //     Username TEXT NOT NULL UNIQUE
+  //   )
+  // `,
+  //   )
+  //   .run();
 
   // Create the "Song" table
   database
@@ -306,28 +313,26 @@ function setupDatabase(database: Database) {
       `
     CREATE TABLE IF NOT EXISTS Playlist (
       PlaylistID INTEGER PRIMARY KEY AUTOINCREMENT,
-      Name TEXT NOT NULL,
-      UserID_FK INTEGER NOT NULL,
-      FOREIGN KEY (UserID_FK) REFERENCES User(UserID)
+      Name TEXT NOT NULL
     )
   `,
     )
     .run();
 
   // Many-to-Many "Manages" relationship table between User and Song
-  database
-    ?.prepare(
-      `
-    CREATE TABLE IF NOT EXISTS Manages (
-      UserID_FK INTEGER NOT NULL,
-      SongID_FK INTEGER NOT NULL,
-      FOREIGN KEY (UserID_FK) REFERENCES User(UserID),
-      FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
-      PRIMARY KEY (UserID_FK, SongID_FK)
-    )
-  `,
-    )
-    .run();
+  // database
+  //   ?.prepare(
+  //     `
+  //   CREATE TABLE IF NOT EXISTS Manages (
+  //     UserID_FK INTEGER NOT NULL,
+  //     SongID_FK INTEGER NOT NULL,
+  //     FOREIGN KEY (UserID_FK) REFERENCES User(UserID),
+  //     FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
+  //     PRIMARY KEY (UserID_FK, SongID_FK)
+  //   )
+  // `,
+  //   )
+  //   .run();
 
   // Many-to-Many "Contains" relationship table between Song and Playlist
   database
@@ -392,6 +397,27 @@ ipcMain.handle("sqlite-file-exists", async () => {
   }
 });
 
+ipcMain.handle("add-folder-files", async () => {
+  try {
+    const settingsData = await readSettings();
+    const files = fs.readdirSync(settingsData?.selectedDir);
+
+    const insert = db?.prepare('INSERT INTO Song (FileLocation) VALUES (?)');
+
+    files.forEach(file => {
+      if(path.extname(file) === ".wav" || path.extname(file) === ".mp3") {
+        const filePath = path.join(file);
+        insert?.run(filePath);
+      }
+    });
+
+    return { success: true, message: 'Files added to the database' };
+  } catch (error) {
+    console.error('Error adding files to the database:', error);
+    return { success: false, message: 'Error adding files to the database' };
+  }
+});
+
 ipcMain.handle("get-names", async () => {
   try {
     //Retrive all rows of usernames from the table User
@@ -402,4 +428,70 @@ ipcMain.handle("get-names", async () => {
     console.error("Get names error:", error);
     return { success: false, error: (error as Error).message };
   }
+});
+
+ipcMain.handle("test-command", async () => {
+  
+  console.log("yt-dlp path: ", ytDlpPath);
+  //const command = `${ytDlpPath}`;
+  const testPath = path.join("..", "node_modules", "ffmpeg-static");
+  const downloadPath = "C:/Users/jayde/Documents/TestDir/Test1";
+  const ytURL = "https://www.youtube.com/watch?v=HLEn5MyXUfE";
+  console.log("TEST PATH FOR FFMPEG: ", testPath);
+  const args = [
+    '--ffmpeg-location', ffmpegPath, 
+    "-P", downloadPath, 
+    "-x", ytURL,
+  ];
+  const child = spawn(ytDlpPath, args);
+
+  child.stdout.on('data',
+    (data) => {
+        console.log(`stdout: ${data}`);
+    });
+ 
+child.stderr.on('data',
+    (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    child.on('close',
+      (code) => {
+          console.log(
+              `child process exited with code ${code}`
+          );
+      });
+});
+
+ipcMain.handle("download-yt-audio", async () => {
+  
+  console.log("yt-dlp path: ", ytDlpPath);
+  //const command = `${ytDlpPath}`;
+  const testPath = path.join("..", "node_modules", "ffmpeg-static");
+  const downloadPath = "C:/Users/jayde/Documents/TestDir/Test1";
+  const ytURL = "https://www.youtube.com/watch?v=HLEn5MyXUfE";
+  console.log("TEST PATH FOR FFMPEG: ", testPath);
+  const args = [
+    '--ffmpeg-location', ffmpegPath, 
+    "-P", downloadPath, 
+    "-x", ytURL,
+  ];
+  const child = spawn(ytDlpPath, args);
+
+  child.stdout.on('data',
+    (data) => {
+        console.log(`stdout: ${data}`);
+    });
+ 
+child.stderr.on('data',
+    (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    child.on('close',
+      (code) => {
+          console.log(
+              `child process exited with code ${code}`
+          );
+      });
 });
