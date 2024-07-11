@@ -23,12 +23,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ytDlpPath = path.join(__dirname, "..", "bin", "yt-dlp.exe");
-const ffmpegPathDir = path.join(ffmpegPath, "..");
-
-const SETTINGS_DATA_PATH = path.join(
-  app.getPath("userData"),
-  "settings_data.json",
-);
 
 //for formatting logs
 const divider = "============================";
@@ -157,6 +151,7 @@ function createWindow() {
   console.log("FILE LOCATION: ", __filename);
   console.log("DIRECTORY LOCATION: ", __dirname);
   console.log("FFMPEG BINARY LOCATION: ", ffmpegPath);
+  console.log("YT-DLP BINARY LOCATION: ", ytDlpPath);
   console.log(divider);
 }
 
@@ -463,35 +458,54 @@ child.stderr.on('data',
       });
 });
 
-ipcMain.handle("download-yt-audio", async () => {
-  
-  console.log("yt-dlp path: ", ytDlpPath);
-  //const command = `${ytDlpPath}`;
-  const testPath = path.join("..", "node_modules", "ffmpeg-static");
-  const downloadPath = "C:/Users/jayde/Documents/TestDir/Test1";
-  const ytURL = "https://www.youtube.com/watch?v=HLEn5MyXUfE";
-  console.log("TEST PATH FOR FFMPEG: ", testPath);
-  const args = [
-    '--ffmpeg-location', ffmpegPath, 
-    "-P", downloadPath, 
-    "-x", ytURL,
-  ];
-  const child = spawn(ytDlpPath, args);
+ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {
+  try {
+    // Log info
+    console.log("YT URL: ", ytURL);
+    console.log("Checkbox info: ", checkBoxes);
 
-  child.stdout.on('data',
-    (data) => {
+    // Get selected directory to download to
+    const settingsData = await readSettings();
+    const downloadPath = settingsData?.selectedDir;
+    if (!downloadPath) {
+      throw new Error('Download path not found in settings');
+    }
+
+    // Construct command arguments
+    const args = [
+      '--ffmpeg-location', ffmpegPath,    // Specify ffmpeg binary
+      '-P', downloadPath,                 // Specify download path
+      '-P', 'thumbnail:thumbnails',       // Specify thumbnail download path
+      '-f', 'bestaudio',                  // Download best quality audio
+      '--write-thumbnail',                // Download thumbnail as well
+      '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
+      '-x', ytURL,
+    ];
+
+    // Wrap spawn in a Promise
+    await new Promise((resolve, reject) => {
+      const child = spawn(ytDlpPath, args);
+
+      child.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
-    });
- 
-child.stderr.on('data',
-    (data) => {
+      });
+
+      child.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve({ success: true, message: 'Youtube URL downloaded!' });
+        } else {
+          reject(new Error(`Child process exited with code ${code}`));
+        }
+      });
     });
 
-    child.on('close',
-      (code) => {
-          console.log(
-              `child process exited with code ${code}`
-          );
-      });
+    return { success: true, message: 'Youtube URL downloaded!' };
+  } catch (error) {
+    console.error('Error during download:', error);
+    return { success: false, message: `Error downloading Youtube URL!` };
+  }
 });
