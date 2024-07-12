@@ -91,8 +91,10 @@ app.whenReady().then(() => {
   // Create custom protocol for local media loading (depreciated)
   protocol.registerFileProtocol("media-loader", (request, callback) => {
     const url = request.url.replace("media-loader://", "");
+    const decodedUrl = decodeURIComponent(url);
+    console.log("Decoded path: ", decodedUrl);
     try {
-      return callback({ path: url });
+      return callback({ path: decodedUrl });
     } catch (err) {
       console.error(err);
     }
@@ -156,23 +158,6 @@ function createWindow() {
 }
 
 // HANDLING FILES
-// function readSettings(): Promise<any> {
-//   return new Promise((resolve, reject) => {
-//     try {
-//       const data = fs.readFileSync(SETTINGS_DATA_PATH, 'utf-8');
-
-//       console.log(divider);
-//       console.log("File read from: ", SETTINGS_DATA_PATH);
-//       console.log("Settings data: ", data);
-//       console.log(divider);
-
-//       if(data)
-//         resolve(JSON.parse(data));
-//     } catch (error) {
-//       reject(error);
-//     }
-//   })
-// }
 
 // Function to get all files in the selected directory
 function getAllFilesInDirectory(dirPath: string): string[] {
@@ -203,23 +188,9 @@ ipcMain.handle("open-dir-dialog", async () => {
   return result.filePaths;
 });
 
-// Define default settings
-const defaultSettings = {
-  selectedDir: "",
-};
-
 // IPC handler for reading local settings data (Do we need a IPC handler for this???)
 ipcMain.handle("read-settings-data", async () => {
   try {
-    //check if the settings file exists, if not create it
-    // if (!fs.existsSync(SETTINGS_DATA_PATH)) {
-    //   fs.writeFileSync(
-    //     SETTINGS_DATA_PATH,
-    //     JSON.stringify(defaultSettings, null, 2),
-    //     "utf-8",
-    //   );
-    // }
-
     //return settings
     return readSettings();
   } catch (error) {
@@ -229,15 +200,10 @@ ipcMain.handle("read-settings-data", async () => {
 });
 
 // IPC handler for writing local settings data
+
 // TODO: may delete later
 ipcMain.handle("write-settings-data", async (event, data) => {
   try {
-    //writing to file
-    // fs.writeFileSync(SETTINGS_DATA_PATH, data);
-    // console.log(divider);
-    // console.log("Writing data: ", data);
-    // console.log(divider);
-    
     await writeSettings(data);
   } catch (error) {
     console.log("Error writing to settings data: ", error);
