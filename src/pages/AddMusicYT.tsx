@@ -72,28 +72,6 @@ export default function AddMusicYT() {
     }
   };
 
-  //TODO: DELTE LATER
-  const handleToast1 = async () => {
-    console.log("Click Toast");
-    addToast(
-      "ALL IS GOOD!",
-      3000,
-      <CheckBadgeIcon className="mr-2 size-5" />,
-      "bg-green-600",
-    );
-    //addToast('ALL IS BAD!', 4000, <ShieldExclamationIcon className="size-5 mr-2" />, "bg-red-600");
-  };
-  const handleToast2 = async () => {
-    console.log("Click Toast");
-    //addToast('ALL IS GOOD!', 3000, <CheckBadgeIcon className="size-5 mr-2" />, "bg-green-600");
-    addToast(
-      "ALL IS BAD!",
-      4000,
-      <ShieldExclamationIcon className="mr-2 size-5" />,
-      "bg-red-600",
-    );
-  };
-
   //run on mount
   useEffect(() => {
     const getSettings = async () => {
@@ -127,8 +105,26 @@ export default function AddMusicYT() {
 
   //log download status
   useEffect(() => {
-    console.log("DOWNLOAD RESULT", downloadStatus);
-    setIsDownloading(false);
+    if(downloadStatus) {
+      console.log("DOWNLOAD RESULT", downloadStatus);
+      setIsDownloading(false);
+
+      if(downloadStatus.success) {
+        addToast(
+          downloadStatus.message,
+          3000,
+          <CheckBadgeIcon className="mr-2 size-5" />,
+          "bg-green-600",
+        );
+      } else {
+        addToast(
+          downloadStatus.message,
+          3000,
+          <ShieldExclamationIcon className="mr-2 size-5" />,
+          "bg-red-600",
+        );
+      }
+    }
   }, [downloadStatus]);
 
   return (
@@ -185,18 +181,7 @@ export default function AddMusicYT() {
             }
           />
         </div>
-        <button
-          className="rounded-lg bg-indigo-600 p-1 px-2 text-white hover:bg-indigo-500"
-          onClick={handleToast1}
-        >
-          Toast1
-        </button>
-        <button
-          className="rounded-lg bg-indigo-600 p-1 px-2 text-white hover:bg-indigo-500"
-          onClick={handleToast2}
-        >
-          Toast2
-        </button>
+
         <ToastContainer />
 
         <DownloadingComp isDownloading={isDownloading} />

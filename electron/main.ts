@@ -471,16 +471,31 @@ ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {
       throw new Error('Download path not found in settings');
     }
 
-    // Construct command arguments
-    const args = [
+    // Construct default command args
+    const defaultArgs = [
       '--ffmpeg-location', ffmpegPath,    // Specify ffmpeg binary
-      '-P', downloadPath,                 // Specify download path
-      '-P', 'thumbnail:thumbnails',       // Specify thumbnail download path
+      '-P', downloadPath,                 // Specify download path  
       '-f', 'bestaudio',                  // Download best quality audio
-      '--write-thumbnail',                // Download thumbnail as well
       '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
-      '-x', ytURL,
     ];
+
+    //construct thumbnail command args
+    let thumbnailArgs: String[] = [];
+    if(checkBoxes.thumbnailChecked) {
+      console.log("Including thumbnail args");
+      thumbnailArgs = [
+        '--write-thumbnail',              // Download thumbnail
+        '-P', 'thumbnail:thumbnails',     // Specify thumbnail download path
+      ];
+    }
+
+    //construct url args
+    const urlArg = ['-x', ytURL,];
+
+    //pass in all args
+    const args = defaultArgs.concat(thumbnailArgs, urlArg);
+
+    console.log("Args passed to yt-dlp: ", args);
 
     // Wrap spawn in a Promise
     await new Promise((resolve, reject) => {
