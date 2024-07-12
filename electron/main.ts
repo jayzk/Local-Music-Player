@@ -267,7 +267,7 @@ function setupDatabase(database: Database) {
     CREATE TABLE IF NOT EXISTS Song (
       SongID INTEGER PRIMARY KEY AUTOINCREMENT,
       Title TEXT NOT NULL,
-      FileLocation TEXT NOT NULL
+      FileLocation TEXT NOT NULL UNIQUE
     )
   `,
     )
@@ -368,12 +368,12 @@ ipcMain.handle("add-folder-files", async () => {
     const settingsData = await readSettings();
     const files = fs.readdirSync(settingsData?.selectedDir);
 
-    const insert = db?.prepare('INSERT INTO Song (FileLocation) VALUES (?)');
+    const insert = db?.prepare('INSERT INTO Song (Title, FileLocation) VALUES (?, ?)');
 
     files.forEach(file => {
-      if(path.extname(file) === ".wav" || path.extname(file) === ".mp3") {
+      if(path.extname(file) === ".wav" || path.extname(file) === ".mp3" || path.extname(file) === ".opus") {
         const filePath = path.join(file);
-        insert?.run(filePath);
+        insert?.run("defaultTitle", filePath);
       }
     });
 
@@ -446,6 +446,7 @@ ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {
     const defaultArgs = [
       '--ffmpeg-location', ffmpegPath,    // Specify ffmpeg binary
       '-P', downloadPath,                 // Specify download path  
+      '--no-playlist',                    // Don't download the playlist 
       '-f', 'bestaudio',                  // Download best quality audio
       '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
     ];

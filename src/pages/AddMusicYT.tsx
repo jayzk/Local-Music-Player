@@ -4,6 +4,7 @@ import {
   FolderArrowDownIcon,
   CheckBadgeIcon,
   ShieldExclamationIcon,
+  XMarkIcon,
 } from "@heroicons/react/20/solid";
 import CheckBox from "../Components/CheckBox";
 import DownloadingComp from "../Components/DownloadingComp";
@@ -71,6 +72,11 @@ export default function AddMusicYT() {
       setDownloadStatus(result);
     }
   };
+
+  const handleClear = () => {
+    console.log("Clearing input field");
+    setYtURL("");
+  }
 
   //run on mount
   useEffect(() => {
@@ -157,14 +163,20 @@ export default function AddMusicYT() {
           </p>
           Downloaded contents will be stored in your music folder
         </div>
-        <div className="flex flex-row space-x-2">
+        <div className="flex flex-row relative space-x-2">
           <input
-            className="truncate rounded-lg border-2 border-slate-600 bg-slate-600 p-1 text-lg text-white outline-none transition duration-200 focus:border-white"
+            className="truncate rounded-lg border-2 pr-10 border-slate-600 bg-slate-600 p-1 text-lg text-white outline-none transition duration-200 focus:border-white"
             placeholder="Input Youtube URL here..."
             value={ytURL}
             onChange={handleInputChange}
             size={50}
           />
+          <button
+            className="absolute right-[6.5rem] top-[0.10rem] rounded-full bg-slate-600 p-2 text-white hover:bg-slate-500"
+            onClick={handleClear}
+          >
+            <XMarkIcon className="size-5" />
+          </button>
           <button
             className="rounded-lg bg-indigo-600 p-1 px-2 text-white hover:bg-indigo-500"
             onClick={handleDownload}

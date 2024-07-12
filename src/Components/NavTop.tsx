@@ -30,7 +30,7 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
   };
 
   const handleRefresh = async () => {
-    await window.ipcRenderer.invoke("test-command");
+    await window.ipcRenderer.invoke("add-folder-files");
   };
 
   //re-render when settingsData updates
