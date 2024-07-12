@@ -12,6 +12,7 @@ const SETTINGS_DATA_PATH = path.join(
 const defaultSettings = {
   selectedDir: "",
   volume: 0.5,
+  currentlyPlaying: "",
 };
 
 export function readSettings(): Promise<any> {
@@ -90,6 +91,26 @@ export function updateSelectedDir(settings: any, newDir: string): Promise<void> 
       //log info
       console.log(divider);
       console.log("Updated selected directory in settings: ", newDir);
+      console.log(divider);
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
+  })
+}
+
+export function updateCurrentlyPlaying(settings: any, newAudioFile: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      //update to new directory
+      const newData = {...settings, currentlyPlaying: newAudioFile};
+
+      //write new settings to file
+      writeSettings(JSON.stringify(newData, null, 2));
+
+      //log info
+      console.log(divider);
+      console.log("Updated selected directory in settings: ", newAudioFile);
       console.log(divider);
       resolve();
     } catch (error) {

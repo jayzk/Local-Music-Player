@@ -14,7 +14,7 @@ import * as path from "path";
 import fs from "fs";
 import { Database } from "better-sqlite3";
 import { getSqlite3 } from "./better-sqlite3";
-import { readSettings, writeSettings, updateVolume, updateSelectedDir } from "./settings";
+import { readSettings, writeSettings, updateVolume, updateSelectedDir, updateCurrentlyPlaying } from "./settings";
 import { spawn } from 'child_process';
 
 const ffmpegPath = require('ffmpeg-static'); //using import gives the wrong file path to the executable
@@ -219,6 +219,11 @@ ipcMain.handle("update-volume-settings", async (event, newVol:Number) => {
 ipcMain.handle("update-directory-settings", async (event, newDir:string) => {
   const settingsData = await readSettings();
   await updateSelectedDir(settingsData, newDir);
+});
+
+ipcMain.handle("update-currentlyPlaying-settings", async (event, newAudioFile:string) => {
+  const settingsData = await readSettings();
+  await updateCurrentlyPlaying(settingsData, newAudioFile);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
