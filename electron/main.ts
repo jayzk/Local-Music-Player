@@ -447,6 +447,7 @@ ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {
       '--ffmpeg-location', ffmpegPath,    // Specify ffmpeg binary
       '-P', downloadPath,                 // Specify download path  
       '--no-playlist',                    // Don't download the playlist 
+      '--embed-metadata',                 // get metadata from youtube URL
       '-f', 'bestaudio',                  // Download best quality audio
       '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
     ];
