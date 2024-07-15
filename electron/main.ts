@@ -345,6 +345,28 @@ ipcMain.handle("add-folder-files", async () => {
   }
 });
 
+ipcMain.handle("fetch-songs", async () => {
+  try {
+    const stmt = db?.prepare('SELECT * FROM Song');
+    const songs = stmt?.all();
+    return { success: true, data: songs };
+  } catch (error) {
+    console.error('Error fetching from song table:', error);
+    return { success: false, message: 'Error fetching songs' };
+  }
+})
+
+ipcMain.handle("append-filePaths", async (event, path1, path2) => {
+  try {
+    console.log("PATH 1: ", path1);
+    console.log("PATH 2: ", path2);
+    const result = path.join(path1, path2);
+    return "media-loader:///" + result; //add custom protocol
+  } catch (error) {
+    console.error("Error joining file paths: ", error);
+  }
+})
+
 //TODO: delete later
 ipcMain.handle("meta-test", async () => {
   try {
@@ -357,18 +379,6 @@ ipcMain.handle("meta-test", async () => {
   } catch (error) {
     console.error('Error adding files to the database:', error);
     return { success: false, message: 'Error adding files to the database' };
-  }
-});
-
-ipcMain.handle("get-names", async () => {
-  try {
-    //Retrive all rows of usernames from the table User
-    const rows: any = db?.prepare("SELECT Username FROM User").all();
-    const names = rows.map((row: { Username: any }) => row.Username);
-    return { success: true, data: names };
-  } catch (error) {
-    console.error("Get names error:", error);
-    return { success: false, error: (error as Error).message };
   }
 });
 

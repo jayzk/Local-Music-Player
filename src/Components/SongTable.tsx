@@ -2,11 +2,22 @@ import React, { useEffect, useRef, useState } from "react";
 import defaultThumbNail from "../../public/assets/default-thumbnail.png";
 import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import EllipsisMenu from "./EllipsisMenu";
+import LoadThumbnail from "./LoadThumbnail";
+
+interface Song {
+  SongID: number;
+  Title: string;
+  Artist: string;
+  ThumbnailLocation: string;
+  FileLocation: string;
+}
 
 export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
   const componentRef = useRef<HTMLDivElement>(null);
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [settingsData, setSettingsData] = useState<any | null>(null);
 
   const testData = [
     {
@@ -49,6 +60,43 @@ export default function () {
   };
 
   useEffect(() => {
+    const getSongs = async () => {
+      const result = await window.ipcRenderer.invoke("fetch-songs");
+      if(result.success) {
+        setSongs(result.data);
+      } else {
+        console.error("Error: ", result.message);
+      }
+    }
+
+    const getSettings = async () => {
+      const result = await window.ipcRenderer.invoke("read-settings-data");
+      if(result) {
+        setSettingsData(result);
+      } else {
+        console.error("Error fetching settings")
+      }
+    }
+
+    getSongs();
+    getSettings();
+  }, []);
+
+  //log song data
+  useEffect(() => {
+    if(songs) {
+      console.log("Fetched Songs: ", songs);
+    }
+  }, [songs]);
+
+  //log settings data
+  useEffect(() => {
+    if(settingsData) {
+      console.log("Songs Table -> settings data: ", settingsData);
+    }
+  }, [settingsData]);
+
+  useEffect(() => {
     if (isSubMenuVisible) {
       document.addEventListener("click", handleClickOutside);
     } else {
@@ -77,26 +125,26 @@ export default function () {
       <div className="scroller h-[90%] overflow-hidden overflow-y-auto">
         <table className="w-full table-fixed">
           <tbody className="text-slate-100">
-            {testData.map((song, index) => (
+            {songs.map((song) => (
               <tr
-                key={index}
+                key={song.SongID}
                 className="group cursor-pointer hover:bg-slate-600"
                 onClick={() => handleRowClick(song)}
               >
-                <td className="w-10 lg:w-16 xl:w-24">{index + 1}</td>
+                <td className="w-10 lg:w-16 xl:w-24">{song.SongID}</td>
                 <td className="w-64 lg:w-80 xl:w-96">
                   <div className="flex items-center">
-                    <img src={defaultThumbNail} className="mr-2 size-10" />
-                    {song.song}
+                    <LoadThumbnail thumbnailPath={song.ThumbnailLocation} settingsData={settingsData} />
+                    {song.Title}
                   </div>
                 </td>
-                <td className="w-24 lg:w-40 xl:w-64">{song.artist}</td>
-                <td className="relative w-24 lg:w-40 xl:w-48">{song.year}</td>
+                <td className="w-24 lg:w-40 xl:w-64">{song.Artist}</td>
+                <td className="relative w-24 lg:w-40 xl:w-48">{song.SongID}</td>
                 <td className="relative">
                   <div className="flex items-center">
                     <button
                       className="z-50 rounded-full p-2 opacity-0 hover:bg-slate-500 group-hover:opacity-100"
-                      onClick={handleEllipsis(index)}
+                      onClick={handleEllipsis(song.SongID)}
                     >
                       <EllipsisHorizontalIcon className="size-5" />
                     </button>
@@ -105,7 +153,7 @@ export default function () {
                     className="absolute inset-y-2 -left-24 z-10"
                     ref={componentRef}
                   >
-                    {isSubMenuVisible && index === whichSubMenu && (
+                    {isSubMenuVisible && song.SongID === whichSubMenu && (
                       <EllipsisMenu onClick={(e) => e.stopPropagation()} />
                     )}
                   </div>
