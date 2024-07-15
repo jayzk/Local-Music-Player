@@ -11,6 +11,22 @@ const root = path.join(__dirname, "..");
 const TAG = "[better-sqlite3]";
 let database: Database.Database;
 
+export function updateDatabaseSchema(database: Database.Database | null) {
+  try {
+    database
+      ?.prepare(
+        `
+        ALTER TABLE Song
+        ADD COLUMN Duration REAL DEFAULT 0
+      `
+      )
+      .run();
+    console.log('Database schema updated successfully');
+  } catch (error) {
+    console.error('Error updating database schema:', error);
+  }
+}
+
 export function setupDatabase(database: Database.Database) {
   // Create the "Song" table
   database
@@ -20,6 +36,7 @@ export function setupDatabase(database: Database.Database) {
       SongID INTEGER PRIMARY KEY AUTOINCREMENT,
       Title TEXT DEFAULT '',
       Artist TEXT DEFAULT '',
+      Duration REAL DEFAULT 0,
       ThumbnailLocation TEXT DEFAULT '',
       FileLocation TEXT NOT NULL UNIQUE
     )

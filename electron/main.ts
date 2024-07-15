@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import * as path from "path";
 import fs from "fs";
 import { Database } from "better-sqlite3";
-import { getSqlite3, setupDatabase } from "./better-sqlite3";
+import { getSqlite3, setupDatabase, updateDatabaseSchema } from "./better-sqlite3";
 import { readSettings, writeSettings, updateVolume, updateSelectedDir, updateCurrentlyPlaying } from "./settings";
 import { spawn } from 'child_process';
 
@@ -305,8 +305,11 @@ ipcMain.handle("add-folder-files", async () => {
     // Store existing file locations in a Set for quick lookup
     const existingFilePaths = new Set(existingFiles.map(row => (row as any).FileLocation));
 
+    //TODO: delete later
+    //updateDatabaseSchema(db);
+
     //prepare sql statement
-    const insert = db?.prepare('INSERT INTO Song (Title, Artist, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?)');
+    const insert = db?.prepare('INSERT INTO Song (Title, Artist, Duration, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?)');
 
     //iterate through all the files
     for (const file of files) {
@@ -321,6 +324,11 @@ ipcMain.handle("add-folder-files", async () => {
         const metadata = await parseFile(filePath);
         const title = metadata.common.title || '';
         const artist = metadata.common.artist || '';
+        const duration = metadata.format.duration || '';
+
+        //TODO: delete later
+        // const insertDur = db?.prepare('UPDATE Song SET Duration = ? WHERE Title = ?');
+        // insertDur?.run(duration, title);
 
         //check if the thumbnail path exists or not
         let thumbnailPath;
@@ -333,7 +341,7 @@ ipcMain.handle("add-folder-files", async () => {
         //only insert into database if it does not exist
         if (!existingFilePaths.has(file)) {
           console.log("Adding file to database: ", file);
-          insert?.run(title, artist, thumbnailPath, file);
+          insert?.run(title, artist, duration, thumbnailPath, file);
         }
       }
     }

@@ -10,6 +10,7 @@ interface Song {
   Artist: string;
   ThumbnailLocation: string;
   FileLocation: string;
+  Duration: number;
 }
 
 export default function () {
@@ -18,24 +19,6 @@ export default function () {
   const componentRef = useRef<HTMLDivElement>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [settingsData, setSettingsData] = useState<any | null>(null);
-
-  const testData = [
-    {
-      song: "The Sliding Mr. Bones (Next Stop, Pottersville)",
-      artist: "Malcolm Lockyer",
-      year: 1961,
-    },
-    { song: "Witchy Woman", artist: "The Eagles", year: 1972 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-    { song: "Shining Star", artist: "Earth, Wind, and Fire", year: 1975 },
-  ];
 
   const handleRowClick = (song: any) => {
     console.log("Row clicked: ", song);
@@ -107,6 +90,12 @@ export default function () {
     };
   }, [isSubMenuVisible]);
 
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
   return (
     <div className="mx-2 mt-2 h-full">
       <div className="h-[10%] pr-2">
@@ -116,7 +105,7 @@ export default function () {
               <th className="w-10 lg:w-16 xl:w-24">#</th>
               <th className="w-64 lg:w-80 xl:w-96">Song</th>
               <th className="w-24 lg:w-40 xl:w-64">Artist</th>
-              <th className="w-24 lg:w-40 xl:w-48">Year</th>
+              <th className="w-24 lg:w-40 xl:w-48">Duration</th>
               <th className=""></th>
             </tr>
           </thead>
@@ -139,7 +128,7 @@ export default function () {
                   </div>
                 </td>
                 <td className="w-24 lg:w-40 xl:w-64">{song.Artist}</td>
-                <td className="relative w-24 lg:w-40 xl:w-48">{song.SongID}</td>
+                <td className="relative w-24 lg:w-40 xl:w-48">{formatTime(song.Duration)}</td>
                 <td className="relative">
                   <div className="flex items-center">
                     <button
