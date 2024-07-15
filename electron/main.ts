@@ -13,11 +13,12 @@ import { fileURLToPath } from "node:url";
 import * as path from "path";
 import fs from "fs";
 import { Database } from "better-sqlite3";
-import { getSqlite3 } from "./better-sqlite3";
+import { getSqlite3, setupDatabase } from "./better-sqlite3";
 import { readSettings, writeSettings, updateVolume, updateSelectedDir, updateCurrentlyPlaying } from "./settings";
 import { spawn } from 'child_process';
 
 const ffmpegPath = require('ffmpeg-static'); //using import gives the wrong file path to the executable
+import { parseFile } from "music-metadata";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -247,77 +248,6 @@ app.on("activate", () => {
 // HANDLING DATABASE
 let db: Database | null;
 
-function setupDatabase(database: Database) {
-  // Create the "User" table
-  // database
-  //   ?.prepare(
-  //     `
-  //   CREATE TABLE IF NOT EXISTS User (
-  //     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-  //     Username TEXT NOT NULL UNIQUE
-  //   )
-  // `,
-  //   )
-  //   .run();
-
-  // Create the "Song" table
-  database
-    ?.prepare(
-      `
-    CREATE TABLE IF NOT EXISTS Song (
-      SongID INTEGER PRIMARY KEY AUTOINCREMENT,
-      Title TEXT NOT NULL,
-      FileLocation TEXT NOT NULL UNIQUE
-    )
-  `,
-    )
-    .run();
-
-  // Create the "Playlist" table (one-to-many relationship with User)
-  database
-    ?.prepare(
-      `
-    CREATE TABLE IF NOT EXISTS Playlist (
-      PlaylistID INTEGER PRIMARY KEY AUTOINCREMENT,
-      Name TEXT NOT NULL
-    )
-  `,
-    )
-    .run();
-
-  // Many-to-Many "Manages" relationship table between User and Song
-  // database
-  //   ?.prepare(
-  //     `
-  //   CREATE TABLE IF NOT EXISTS Manages (
-  //     UserID_FK INTEGER NOT NULL,
-  //     SongID_FK INTEGER NOT NULL,
-  //     FOREIGN KEY (UserID_FK) REFERENCES User(UserID),
-  //     FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
-  //     PRIMARY KEY (UserID_FK, SongID_FK)
-  //   )
-  // `,
-  //   )
-  //   .run();
-
-  // Many-to-Many "Contains" relationship table between Song and Playlist
-  database
-    ?.prepare(
-      `
-    CREATE TABLE IF NOT EXISTS Contains (
-      PlaylistID_FK INTEGER NOT NULL,
-      SongID_FK INTEGER NOT NULL,
-      FOREIGN KEY (PlaylistID_FK) REFERENCES Playlist(PlaylistID),
-      FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
-      PRIMARY KEY (PlaylistID_FK, SongID_FK)
-    )
-  `,
-    )
-    .run();
-
-  console.log("Database initialized");
-}
-
 app.whenReady().then(() => {
   createWindow();
 });
@@ -368,14 +298,60 @@ ipcMain.handle("add-folder-files", async () => {
     const settingsData = await readSettings();
     const files = fs.readdirSync(settingsData?.selectedDir);
 
-    const insert = db?.prepare('INSERT INTO Song (Title, FileLocation) VALUES (?, ?)');
+    // Fetch all existing file locations in the Song table
+    const existingFilesQuery = db?.prepare('SELECT FileLocation FROM Song');
+    const existingFiles = existingFilesQuery?.all() || [];
+    
+    // Store existing file locations in a Set for quick lookup
+    const existingFilePaths = new Set(existingFiles.map(row => (row as any).FileLocation));
 
-    files.forEach(file => {
-      if(path.extname(file) === ".wav" || path.extname(file) === ".mp3" || path.extname(file) === ".opus") {
-        const filePath = path.join(file);
-        insert?.run("defaultTitle", filePath);
+    //prepare sql statement
+    const insert = db?.prepare('INSERT INTO Song (Title, Artist, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?)');
+
+    //iterate through all the files
+    for (const file of files) {
+      const ext = path.extname(file); //check file extension
+      if(ext === ".wav" || ext === ".mp3" || ext === ".opus") {
+        const settingsData = await readSettings();
+
+        const filePath = path.join(settingsData?.selectedDir, file);
+        const thumbnailCheckPath = path.join(settingsData?.selectedDir, "thumbnails", path.parse(file).name + ".webp");
+
+        //get metadata information of the file
+        const metadata = await parseFile(filePath);
+        const title = metadata.common.title || '';
+        const artist = metadata.common.artist || '';
+
+        //check if the thumbnail path exists or not
+        let thumbnailPath;
+        if(fs.existsSync(thumbnailCheckPath)) {
+          thumbnailPath = path.join("thumbnails", path.parse(file).name + ".webp");
+        } else {
+          thumbnailPath = '';
+        }
+
+        //only insert into database if it does not exist
+        if (!existingFilePaths.has(file)) {
+          console.log("Adding file to database: ", file);
+          insert?.run(title, artist, thumbnailPath, file);
+        }
       }
-    });
+    }
+
+    return { success: true, message: 'Files added to the database' };
+  } catch (error) {
+    console.error('Error adding files to the database:', error);
+    return { success: false, message: 'Error adding files to the database' };
+  }
+});
+
+//TODO: delete later
+ipcMain.handle("meta-test", async () => {
+  try {
+    const filePath = path.join("C:/Users/jayde/Documents/TestDir/Test1/Barns Courtney - Champion (Official Audio)-[HLEn5MyXUfE].opus");
+    const metadata = await parseFile(filePath);
+    const title = metadata.common.title || '';
+    console.log("TEST TITLE: ", title);
 
     return { success: true, message: 'Files added to the database' };
   } catch (error) {
@@ -394,39 +370,6 @@ ipcMain.handle("get-names", async () => {
     console.error("Get names error:", error);
     return { success: false, error: (error as Error).message };
   }
-});
-
-ipcMain.handle("test-command", async () => {
-  
-  console.log("yt-dlp path: ", ytDlpPath);
-  //const command = `${ytDlpPath}`;
-  const testPath = path.join("..", "node_modules", "ffmpeg-static");
-  const downloadPath = "C:/Users/jayde/Documents/TestDir/Test1";
-  const ytURL = "https://www.youtube.com/watch?v=HLEn5MyXUfE";
-  console.log("TEST PATH FOR FFMPEG: ", testPath);
-  const args = [
-    '--ffmpeg-location', ffmpegPath, 
-    "-P", downloadPath, 
-    "-x", ytURL,
-  ];
-  const child = spawn(ytDlpPath, args);
-
-  child.stdout.on('data',
-    (data) => {
-        console.log(`stdout: ${data}`);
-    });
- 
-child.stderr.on('data',
-    (data) => {
-        console.error(`stderr: ${data}`);
-    });
-
-    child.on('close',
-      (code) => {
-          console.log(
-              `child process exited with code ${code}`
-          );
-      });
 });
 
 ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {

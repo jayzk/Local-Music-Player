@@ -22,6 +22,7 @@ export default function BottomPlayer() {
     }
   }, [url])
 
+  //TODO: delete later
   const handleOpenFileDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-file-dialog");
     if (filePaths.length > 0) {
@@ -35,12 +36,17 @@ export default function BottomPlayer() {
     }
   };
 
+  //TODO: delete later
+  const handleTest = async () => {
+    const filePaths = await window.ipcRenderer.invoke("meta-test");
+  };
+
   return (
     <div className='flex h-full justify-center content-center items-center w-screen'>
         <AudioControls fileUrl={url} />
         <button
             className="rounded-lg bg-indigo-600 p-1 px-2 text-white hover:bg-indigo-500"
-            onClick={handleOpenFileDialog}
+            onClick={handleTest}
           >
             test
           </button>

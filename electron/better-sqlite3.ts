@@ -11,6 +11,52 @@ const root = path.join(__dirname, "..");
 const TAG = "[better-sqlite3]";
 let database: Database.Database;
 
+export function setupDatabase(database: Database.Database) {
+  // Create the "Song" table
+  database
+    ?.prepare(
+      `
+    CREATE TABLE IF NOT EXISTS Song (
+      SongID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Title TEXT DEFAULT '',
+      Artist TEXT DEFAULT '',
+      ThumbnailLocation TEXT DEFAULT '',
+      FileLocation TEXT NOT NULL UNIQUE
+    )
+  `,
+    )
+    .run();
+
+  // Create the "Playlist" table (one-to-many relationship with User)
+  database
+    ?.prepare(
+      `
+    CREATE TABLE IF NOT EXISTS Playlist (
+      PlaylistID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Name TEXT NOT NULL
+    )
+  `,
+    )
+    .run();
+
+  // Many-to-Many "Contains" relationship table between Song and Playlist
+  database
+    ?.prepare(
+      `
+    CREATE TABLE IF NOT EXISTS Contains (
+      PlaylistID_FK INTEGER NOT NULL,
+      SongID_FK INTEGER NOT NULL,
+      FOREIGN KEY (PlaylistID_FK) REFERENCES Playlist(PlaylistID),
+      FOREIGN KEY (SongID_FK) REFERENCES Song(SongID),
+      PRIMARY KEY (PlaylistID_FK, SongID_FK)
+    )
+  `,
+    )
+    .run();
+
+  console.log("Database initialized");
+}
+
 export function getSqlite3(filename: string) {
   return new Promise((resolve, reject) => {
     try {
