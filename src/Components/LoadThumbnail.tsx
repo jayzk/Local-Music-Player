@@ -24,7 +24,6 @@ export default function LoadThumbnail({
             thumbnailPath,
           );
           setThumbnailSrc(src);
-          console.log("TEST SRC: ", src);
         }
       } catch (error) {
         console.error("LoadThumbnail -> Error fetching thumbnail:");

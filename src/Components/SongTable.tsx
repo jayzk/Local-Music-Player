@@ -28,6 +28,12 @@ export default function () {
       const absolutePath = await window.ipcRenderer.invoke("append-filePaths", settingsData?.selectedDir, fileLocation);
       await window.ipcRenderer.invoke("update-currentlyPlaying-settings", absolutePath);
       console.log("SongTable -> Now playing: ", absolutePath);
+
+      //update settings data
+      const newSettingsData =
+        await window.ipcRenderer.invoke("read-settings-data");
+      console.log("New settings: ", newSettingsData);
+      setSettingsData(newSettingsData);
     }
   };
 
@@ -60,7 +66,7 @@ export default function () {
     }
 
     getSongs();
-  }, [settingsData]); //re-render everytime selectedDir in settings changes
+  }, [settingsData?.selectedDir]); //re-render everytime selectedDir in settings changes
 
   //log song data
   useEffect(() => {
