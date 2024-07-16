@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import * as path from "path";
 import fs from "fs";
 import { Database } from "better-sqlite3";
-import { getSqlite3, setupDatabase, updateDatabaseSchema } from "./better-sqlite3";
+import { getSqlite3, setupDatabase} from "./better-sqlite3";
 import { readSettings, writeSettings, updateVolume, updateSelectedDir, updateCurrentlyPlaying } from "./settings";
 import { spawn } from 'child_process';
 
@@ -27,6 +27,31 @@ const ytDlpPath = path.join(__dirname, "..", "bin", "yt-dlp.exe");
 
 //for formatting logs
 const divider = "============================";
+
+// HANDLING DATABASE
+let db: Database | null;
+
+// function to wait for db init
+function waitForDbInitialization(maxRetries = 10, delay = 100): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let retries = 0;
+
+    const checkDb = () => {
+      if (db) {
+        resolve();
+      } else {
+        retries++;
+        if (retries > maxRetries) {
+          reject(new Error('Database not initialized'));
+        } else {
+          setTimeout(checkDb, delay);
+        }
+      }
+    };
+
+    checkDb();
+  });
+}
 
 //TODO: trace warnings
 // process.traceProcessWarnings = true;
@@ -93,7 +118,7 @@ app.whenReady().then(() => {
   protocol.registerFileProtocol("media-loader", (request, callback) => {
     const url = request.url.replace("media-loader://", "");
     const decodedUrl = decodeURIComponent(url);
-    console.log("Decoded path: ", decodedUrl);
+    //console.log("Decoded path: ", decodedUrl);
     try {
       return callback({ path: decodedUrl });
     } catch (err) {
@@ -218,6 +243,13 @@ ipcMain.handle("update-volume-settings", async (event, newVol:Number) => {
 });
 
 ipcMain.handle("update-directory-settings", async (event, newDir:string) => {
+  //close database connection
+  if(db) {
+    console.log("closing database connection!");
+    db?.close();
+    db = null;
+  }
+
   const settingsData = await readSettings();
   await updateSelectedDir(settingsData, newDir);
 });
@@ -245,8 +277,7 @@ app.on("activate", () => {
   }
 });
 
-// HANDLING DATABASE
-let db: Database | null;
+
 
 app.whenReady().then(() => {
   createWindow();
@@ -295,6 +326,8 @@ ipcMain.handle("sqlite-file-exists", async () => {
 
 ipcMain.handle("add-folder-files", async () => {
   try {
+    await waitForDbInitialization();
+
     const settingsData = await readSettings();
     const files = fs.readdirSync(settingsData?.selectedDir);
 
@@ -353,8 +386,12 @@ ipcMain.handle("add-folder-files", async () => {
   }
 });
 
+
+
 ipcMain.handle("fetch-songs", async () => {
   try {
+    await waitForDbInitialization();
+
     const stmt = db?.prepare('SELECT * FROM Song');
     const songs = stmt?.all();
     return { success: true, data: songs };
@@ -366,8 +403,8 @@ ipcMain.handle("fetch-songs", async () => {
 
 ipcMain.handle("append-filePaths", async (event, path1, path2) => {
   try {
-    console.log("PATH 1: ", path1);
-    console.log("PATH 2: ", path2);
+    //console.log("PATH 1: ", path1);
+    //console.log("PATH 2: ", path2);
     const result = path.join(path1, path2);
     return "media-loader:///" + result; //add custom protocol
   } catch (error) {

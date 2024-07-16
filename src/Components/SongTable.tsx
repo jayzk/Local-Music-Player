@@ -50,6 +50,7 @@ export default function () {
 
   useEffect(() => {
     const getSongs = async () => {
+      console.log("SongTable -> fetching songs from table");
       const result = await window.ipcRenderer.invoke("fetch-songs");
       if(result.success) {
         setSongs(result.data);
@@ -59,7 +60,7 @@ export default function () {
     }
 
     getSongs();
-  }, []);
+  }, [settingsData]); //re-render everytime selectedDir in settings changes
 
   //log song data
   useEffect(() => {
@@ -67,13 +68,6 @@ export default function () {
       console.log("Fetched Songs: ", songs);
     }
   }, [songs]);
-
-  //log settings data
-  // useEffect(() => {
-  //   if(settingsData) {
-  //     console.log("Songs Table -> settings data: ", settingsData);
-  //   }
-  // }, [settingsData]);
 
   useEffect(() => {
     if (isSubMenuVisible) {

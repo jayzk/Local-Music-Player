@@ -16,6 +16,7 @@ export default function LoadThumbnail({
   useEffect(() => {
     const fetchThumbnail = async () => {
       try {
+        console.log("LoadThumbnail -> Fetching thumbnail");
         if (thumbnailPath !== "") {
           const src = await window.ipcRenderer.invoke(
             "append-filePaths",
@@ -23,14 +24,15 @@ export default function LoadThumbnail({
             thumbnailPath,
           );
           setThumbnailSrc(src);
+          console.log("TEST SRC: ", src);
         }
       } catch (error) {
-        console.error("LoadThumbnail -> Error fetching thumbnail:", error);
+        console.error("LoadThumbnail -> Error fetching thumbnail:");
       }
     };
 
     if (settingsData) fetchThumbnail();
-  }, [settingsData]);
+  }, []);
 
   return <img src={thumbnailSrc} className="mr-2 size-[20%]" />;
 }
