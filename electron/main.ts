@@ -406,7 +406,8 @@ ipcMain.handle("append-filePaths", async (event, path1, path2) => {
     //console.log("PATH 1: ", path1);
     //console.log("PATH 2: ", path2);
     const result = path.join(path1, path2);
-    return "media-loader:///" + result; //add custom protocol
+    const absPath = result.replaceAll('\\', '/');
+    return "media-loader:///" + absPath; //add custom protocol
   } catch (error) {
     console.error("Error joining file paths: ", error);
   }
