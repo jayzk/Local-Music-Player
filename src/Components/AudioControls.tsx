@@ -11,6 +11,8 @@ import {
 import Shuffle from "../../public/additional-icons/shuffle.tsx";
 import React, { useEffect, useRef, useState } from "react";
 
+import { useSettingsContext } from "../Layouts/SettingsContext.tsx";
+
 interface AudioControlsProps {
   fileUrl: string;
 }
@@ -22,21 +24,11 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [currentVol, setCurrentVol] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
-  const [settingsData, setSettingsData] = useState<any | null>(null);
+  const {settingsData} = useSettingsContext();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
   const volSliderRef = useRef<HTMLInputElement | null>(null);
-
-  //run on mount
-  useEffect(() => {
-    const getSettings = async () => {
-      const data = await window.ipcRenderer.invoke("read-settings-data");
-      setSettingsData(data);
-    };
-
-    getSettings();
-  }, []);
 
   //run whenever settingsData changes
   useEffect(() => {

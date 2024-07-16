@@ -1,15 +1,32 @@
 import React, { useEffect, useState } from 'react'
 import AudioControls from './AudioControls'
 
+import { useSettingsContext } from '../Layouts/SettingsContext';
+
 export default function BottomPlayer() {
   const [url, setUrl] = useState("");
 
+  const {settingsData, setSettingsData} = useSettingsContext();
+
   useEffect(() => {
-    const fileUrl = `media-loader:///${encodeURIComponent("C:/Users/jayde/Music/Overwhelmed - Ryan Mack & Christian Gates-[ApsgDNiZhXI].opus")}`;
-    //const fileUrl = `media-loader:///${encodeURIComponent("C:/Users/jayde/Music/はいよろこんで こっちのけんと MV-[jzi6RNVEOtA].opus")}`;
-    
+    //const fileUrl = `media-loader:///${encodeURIComponent("C:/Users/jayde/Music/Overwhelmed - Ryan Mack & Christian Gates-[ApsgDNiZhXI].opus")}`;
+    const fileUrl = `media-loader:///${encodeURIComponent("C:/Users/jayde/Music/はいよろこんで こっちのけんと MV-[jzi6RNVEOtA].opus")}`;
+    //const fileUrl = "media-loader:///C:\Users\jayde\Documents\TestDir\Test1\Barns Courtney - Champion (Official Audio)-[HLEn5MyXUfE].opus"
     // const filePath = "C:/Users/jayde/Music/はいよろこんで こっちのけんと MV-[jzi6RNVEOtA].opus";
     // const fileUrl = `media-loader:///${decodeURIComponent(filePath)}`;
+
+    const getSettings = async () => {
+      const result = await window.ipcRenderer.invoke("read-settings-data");
+      if(result) {
+        setSettingsData(result);
+      } else {
+        console.error("Error fetching settings")
+      }
+    }
+
+    //getSettings();
+
+    //const fileUrl = settingsData?.currentlyPlaying;
 
     console.log("BOTTOM FILE URL: ", fileUrl)
 

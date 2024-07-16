@@ -1,13 +1,11 @@
 import { MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/20/solid";
 import React, { useEffect, useState } from "react";
 
-type NavTopProps = {
-  settingsData: any;
-  setSettingsData: React.Dispatch<any>;
-};
+import { useSettingsContext } from "../Layouts/SettingsContext";
 
-export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
+export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
+  const {settingsData, setSettingsData} = useSettingsContext();
 
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
@@ -21,7 +19,7 @@ export default function NavTop({ settingsData, setSettingsData }: NavTopProps) {
         filePaths[0],
       );
 
-      //update settings data to let parent component know
+      //update settings data
       const newSettingsData =
         await window.ipcRenderer.invoke("read-settings-data");
       console.log("New settings: ", newSettingsData);

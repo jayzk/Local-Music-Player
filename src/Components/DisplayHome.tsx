@@ -5,13 +5,13 @@ import React, { useEffect, useState } from "react";
 import DisplayConfirm from "./DisplayConfirm";
 import SongTable from "./SongTable";
 
-type DisplayHomeProps = {
-  settingsData: any;
-};
+import { useSettingsContext } from "../Layouts/SettingsContext";
 
-export default function DisplayHome({ settingsData }: DisplayHomeProps) {
+export default function DisplayHome() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const {settingsData} = useSettingsContext();
 
   //re-render when settingsData updates
   useEffect(() => {

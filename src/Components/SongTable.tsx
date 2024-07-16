@@ -4,6 +4,8 @@ import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import EllipsisMenu from "./EllipsisMenu";
 import LoadThumbnail from "./LoadThumbnail";
 
+import { useSettingsContext } from "../Layouts/SettingsContext";
+
 interface Song {
   SongID: number;
   Title: string;
@@ -18,11 +20,15 @@ export default function () {
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
   const componentRef = useRef<HTMLDivElement>(null);
   const [songs, setSongs] = useState<Song[]>([]);
-  const [settingsData, setSettingsData] = useState<any | null>(null);
 
-  const handleRowClick = (song: any) => {
-    console.log("Row clicked: ", song);
-    // Add your logic here
+  const {settingsData, setSettingsData} = useSettingsContext();
+
+  const handleRowClick = async (fileLocation: string) => {
+    if(fileLocation) {
+      const absolutePath = await window.ipcRenderer.invoke("append-filePaths", settingsData?.selectedDir, fileLocation);
+      await window.ipcRenderer.invoke("update-currentlyPlaying-settings", absolutePath);
+      console.log("SongTable -> Now playing: ", absolutePath);
+    }
   };
 
   const handleEllipsis =
@@ -52,17 +58,7 @@ export default function () {
       }
     }
 
-    const getSettings = async () => {
-      const result = await window.ipcRenderer.invoke("read-settings-data");
-      if(result) {
-        setSettingsData(result);
-      } else {
-        console.error("Error fetching settings")
-      }
-    }
-
     getSongs();
-    getSettings();
   }, []);
 
   //log song data
@@ -73,11 +69,11 @@ export default function () {
   }, [songs]);
 
   //log settings data
-  useEffect(() => {
-    if(settingsData) {
-      console.log("Songs Table -> settings data: ", settingsData);
-    }
-  }, [settingsData]);
+  // useEffect(() => {
+  //   if(settingsData) {
+  //     console.log("Songs Table -> settings data: ", settingsData);
+  //   }
+  // }, [settingsData]);
 
   useEffect(() => {
     if (isSubMenuVisible) {
@@ -118,12 +114,12 @@ export default function () {
               <tr
                 key={song.SongID}
                 className="group cursor-pointer hover:bg-slate-600"
-                onClick={() => handleRowClick(song)}
+                onClick={() => handleRowClick(song.FileLocation)}
               >
                 <td className="w-10 lg:w-16 xl:w-24">{song.SongID}</td>
                 <td className="w-64 lg:w-80 xl:w-96">
                   <div className="flex items-center">
-                    <LoadThumbnail thumbnailPath={song.ThumbnailLocation} settingsData={settingsData} />
+                    <LoadThumbnail thumbnailPath={song.ThumbnailLocation} />
                     {song.Title}
                   </div>
                 </td>
