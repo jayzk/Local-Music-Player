@@ -338,9 +338,6 @@ ipcMain.handle("add-folder-files", async () => {
     // Store existing file locations in a Set for quick lookup
     const existingFilePaths = new Set(existingFiles.map(row => (row as any).FileLocation));
 
-    //TODO: delete later
-    //updateDatabaseSchema(db);
-
     //prepare sql statement
     const insert = db?.prepare('INSERT INTO Song (Title, Artist, Duration, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?)');
 
@@ -358,10 +355,6 @@ ipcMain.handle("add-folder-files", async () => {
         const title = metadata.common.title || '';
         const artist = metadata.common.artist || '';
         const duration = metadata.format.duration || '';
-
-        //TODO: delete later
-        // const insertDur = db?.prepare('UPDATE Song SET Duration = ? WHERE Title = ?');
-        // insertDur?.run(duration, title);
 
         //check if the thumbnail path exists or not
         let thumbnailPath;
@@ -386,8 +379,6 @@ ipcMain.handle("add-folder-files", async () => {
   }
 });
 
-
-
 ipcMain.handle("fetch-songs", async () => {
   try {
     await waitForDbInitialization();
@@ -395,6 +386,19 @@ ipcMain.handle("fetch-songs", async () => {
     const stmt = db?.prepare('SELECT * FROM Song');
     const songs = stmt?.all();
     return { success: true, data: songs };
+  } catch (error) {
+    console.error('Error fetching from song table:', error);
+    return { success: false, message: 'Error fetching songs' };
+  }
+})
+
+ipcMain.handle("delete-song", async (event, songID) => {
+  try {
+    await waitForDbInitialization();
+
+    const deleteStmt = db?.prepare('DELETE FROM Song WHERE SongID = ?');
+    deleteStmt?.run(songID);
+    return { success: true};
   } catch (error) {
     console.error('Error fetching from song table:', error);
     return { success: false, message: 'Error fetching songs' };
