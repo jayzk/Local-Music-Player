@@ -1,14 +1,12 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import {
   FolderIcon,
   FolderArrowDownIcon,
-  CheckBadgeIcon,
-  ShieldExclamationIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import CheckBox from "../Components/CheckBox";
 import DownloadingComp from "../Components/DownloadingComp";
-import { useToast } from "../Components/Toast";
+import { useToastContext } from "../Contexts/ToastContext";
 
 async function fetchSettings() {
   try {
@@ -29,7 +27,7 @@ export default function AddMusicYT() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState<any | null>(null);
 
-  const { addToast, ToastContainer } = useToast();
+  const toast = useToastContext();
 
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
@@ -116,19 +114,9 @@ export default function AddMusicYT() {
       setIsDownloading(false);
 
       if(downloadStatus.success) {
-        addToast(
-          downloadStatus.message,
-          3000,
-          <CheckBadgeIcon className="mr-2 size-5" />,
-          "bg-green-600",
-        );
+        toast.success(downloadStatus.message);
       } else {
-        addToast(
-          downloadStatus.message,
-          3000,
-          <ShieldExclamationIcon className="mr-2 size-5" />,
-          "bg-red-600",
-        );
+        toast.error(downloadStatus.message);
       }
     }
   }, [downloadStatus]);
@@ -193,8 +181,6 @@ export default function AddMusicYT() {
             }
           />
         </div>
-
-        <ToastContainer />
 
         <DownloadingComp isDownloading={isDownloading} />
       </div>

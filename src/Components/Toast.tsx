@@ -1,68 +1,66 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useToastContext } from "../Contexts/ToastContext";
+
+import {
+  CheckBadgeIcon,
+  ShieldExclamationIcon,
+  XMarkIcon,
+} from "@heroicons/react/20/solid";
 
 type ToastProps = {
   message: string;
-  duration: number; // duration in milliseconds
-  logo: any;
-  color: any;
+  type: any;
+  id: number;
 };
 
-function Toast({ message, duration, logo, color }: ToastProps) {
+const toastTypes: any = {
+  success: {
+    icon: <CheckBadgeIcon className="mr-2 size-5" />,
+    color: "bg-green-600",
+  },
+  error: {
+    icon: <ShieldExclamationIcon className="mr-2 size-5" />,
+    color: "bg-red-600",
+  }
+}
+
+export default function Toast({id, message, type}: ToastProps) {
+  const {icon, color} = toastTypes[type];
+  const toast = useToastContext();
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, duration);
+    }, 4000);
 
-    return () => clearTimeout(timer);
-  }, [duration]);
+    const removeTimer = setTimeout(() => {
+      handleDismiss();
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(removeTimer);
+    }
+    
+  }, []);
+
+  const handleDismiss = () => {
+    console.log("Removing toast: ", id);
+    toast.remove(id);
+  }
 
   return (
     <div
-      className={`flex items-center justify-center ${color} rounded-lg p-4 text-white shadow-lg transition-opacity duration-500 ${
+      className={`flex items-center justify-center ${color} rounded-lg p-3 text-white text-sm shadow-lg transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
-      {logo}
+      {icon}
       {message}
+      <button className="ml-1 p-1 rounded-full hover:bg-slate-400" onClick={handleDismiss}>
+        <XMarkIcon className="size-5" />
+      </button>
     </div>
   );
 }
-
-export const useToast = () => {
-  const [toasts, setToasts] = useState<
-    { id: number; message: string; duration: number; logo: any; color: any }[]
-  >([]);
-
-  const addToast = (
-    message: string,
-    duration: number,
-    logo: any,
-    color: any,
-  ) => {
-    const id = Date.now();
-    setToasts([...toasts, { id, message, duration, logo, color }]);
-    setTimeout(() => {
-      setToasts((currentToasts) =>
-        currentToasts.filter((toast) => toast.id !== id),
-      );
-    }, duration + 2000); // Extra time for fade-out animation
-  };
-
-  const ToastContainer = () => (
-    <div className="fixed right-0 top-[15%] space-y-2 p-4">
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          duration={toast.duration}
-          logo={toast.logo}
-          color={toast.color}
-        />
-      ))}
-    </div>
-  );
-
-  return { addToast, ToastContainer };
-};

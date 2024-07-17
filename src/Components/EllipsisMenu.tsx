@@ -1,12 +1,18 @@
 import React from "react";
+//import { useToast } from "./Toast";
+import { useToastContext } from "../Contexts/ToastContext";
 
 type EllipsisMenuProps = {
+  song: any;
   onClick: (event: React.MouseEvent) => void; //used to stop propagation
 };
 
-export default function EllipsisMenu({ onClick }: EllipsisMenuProps) {
+export default function EllipsisMenu( { song, onClick }: EllipsisMenuProps) {
+  const toast = useToastContext();
+
   const handleRemove = () => {
-    console.log("Remove button");
+    console.log("Remove button: ", song);
+    toast.success("Success toast notification");
   };
 
   return (
@@ -20,6 +26,7 @@ export default function EllipsisMenu({ onClick }: EllipsisMenuProps) {
       >
         Remove
       </button>
+
     </div>
   );
 }

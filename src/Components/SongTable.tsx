@@ -4,7 +4,7 @@ import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import EllipsisMenu from "./EllipsisMenu";
 import LoadThumbnail from "./LoadThumbnail";
 
-import { useSettingsContext } from "../Layouts/SettingsContext";
+import { useSettingsContext } from "../Contexts/SettingsContext";
 
 interface Song {
   SongID: number;
@@ -21,12 +21,19 @@ export default function () {
   const componentRef = useRef<HTMLDivElement>(null);
   const [songs, setSongs] = useState<Song[]>([]);
 
-  const {settingsData, setSettingsData} = useSettingsContext();
+  const { settingsData, setSettingsData } = useSettingsContext();
 
   const handleRowClick = async (fileLocation: string) => {
-    if(fileLocation) {
-      const absolutePath = await window.ipcRenderer.invoke("append-filePaths", settingsData?.selectedDir, fileLocation);
-      await window.ipcRenderer.invoke("update-currentlyPlaying-settings", absolutePath);
+    if (fileLocation) {
+      const absolutePath = await window.ipcRenderer.invoke(
+        "append-filePaths",
+        settingsData?.selectedDir,
+        fileLocation,
+      );
+      await window.ipcRenderer.invoke(
+        "update-currentlyPlaying-settings",
+        absolutePath,
+      );
       console.log("SongTable -> Now playing: ", absolutePath);
 
       //update settings data
@@ -58,19 +65,19 @@ export default function () {
     const getSongs = async () => {
       console.log("SongTable -> fetching songs from table");
       const result = await window.ipcRenderer.invoke("fetch-songs");
-      if(result.success) {
+      if (result.success) {
         setSongs(result.data);
       } else {
         console.error("Error: ", result.message);
       }
-    }
+    };
 
     getSongs();
   }, [settingsData?.selectedDir]); //re-render everytime selectedDir in settings changes
 
   //log song data
   useEffect(() => {
-    if(songs) {
+    if (songs) {
       console.log("Fetched Songs: ", songs);
     }
   }, [songs]);
@@ -124,7 +131,9 @@ export default function () {
                   </div>
                 </td>
                 <td className="w-24 lg:w-40 xl:w-64">{song.Artist}</td>
-                <td className="relative w-24 lg:w-40 xl:w-48">{formatTime(song.Duration)}</td>
+                <td className="relative w-24 lg:w-40 xl:w-48">
+                  {formatTime(song.Duration)}
+                </td>
                 <td className="relative">
                   <div className="flex items-center">
                     <button
@@ -139,7 +148,10 @@ export default function () {
                     ref={componentRef}
                   >
                     {isSubMenuVisible && song.SongID === whichSubMenu && (
-                      <EllipsisMenu onClick={(e) => e.stopPropagation()} />
+                      <EllipsisMenu
+                        song={song}
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     )}
                   </div>
                 </td>

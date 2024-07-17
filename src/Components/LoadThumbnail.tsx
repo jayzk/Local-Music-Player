@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
 import defaultThumbNail from "../../public/assets/default-thumbnail.png";
 
-import { useSettingsContext } from "../Layouts/SettingsContext";
+import { useSettingsContext } from "../Contexts/SettingsContext";
 
 type LoadThumbnailProps = {
   thumbnailPath: string;
 };
 
-export default function LoadThumbnail({
-  thumbnailPath,
-}: LoadThumbnailProps) {
+export default function LoadThumbnail({ thumbnailPath }: LoadThumbnailProps) {
   const [thumbnailSrc, setThumbnailSrc] = useState<string>(defaultThumbNail);
-  const {settingsData} = useSettingsContext();
+  const { settingsData } = useSettingsContext();
 
   useEffect(() => {
     const fetchThumbnail = async () => {

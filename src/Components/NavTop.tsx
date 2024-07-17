@@ -1,11 +1,11 @@
 import { MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/20/solid";
 import React, { useEffect, useState } from "react";
 
-import { useSettingsContext } from "../Layouts/SettingsContext";
+import { useSettingsContext } from "../Contexts/SettingsContext";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
-  const {settingsData, setSettingsData} = useSettingsContext();
+  const { settingsData, setSettingsData } = useSettingsContext();
 
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
@@ -74,7 +74,10 @@ export default function NavTop() {
         <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
       </div>
       <div className="lg:absolute lg:right-20 lg:top-2">
-        <button className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500" onClick={handleRefresh}>
+        <button
+          className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-500"
+          onClick={handleRefresh}
+        >
           <div className="group flex items-center justify-center">
             <ArrowPathIcon className="mr-1 size-5 group-hover:animate-[spin_1s_ease-in-out_infinite]" />
             Refresh Music Folder

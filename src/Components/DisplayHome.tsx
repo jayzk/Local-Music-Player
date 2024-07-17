@@ -1,17 +1,15 @@
-import {
-  FolderIcon,
-} from "@heroicons/react/24/outline";
+import { FolderIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import DisplayConfirm from "./DisplayConfirm";
 import SongTable from "./SongTable";
 
-import { useSettingsContext } from "../Layouts/SettingsContext";
+import { useSettingsContext } from "../Contexts/SettingsContext";
 
 export default function DisplayHome() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const {settingsData} = useSettingsContext();
+  const { settingsData } = useSettingsContext();
 
   //re-render when settingsData updates
   useEffect(() => {
@@ -34,8 +32,6 @@ export default function DisplayHome() {
     checkSqliteFile();
   }, [settingsData]);
 
-  
-
   if (!settingsData || settingsData?.selectedDir === "") {
     //No directory/folder is selected
     return (
@@ -50,7 +46,10 @@ export default function DisplayHome() {
         {isConfirmed || isInitialized ? (
           <SongTable />
         ) : (
-          <DisplayConfirm isConfirmed={isConfirmed} setIsConfirmed={setIsConfirmed} />
+          <DisplayConfirm
+            isConfirmed={isConfirmed}
+            setIsConfirmed={setIsConfirmed}
+          />
         )}
       </div>
     );

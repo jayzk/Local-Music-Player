@@ -11,7 +11,7 @@ import {
 import Shuffle from "../../public/additional-icons/shuffle.tsx";
 import React, { useEffect, useRef, useState } from "react";
 
-import { useSettingsContext } from "../Layouts/SettingsContext.tsx";
+import { useSettingsContext } from "../Contexts/SettingsContext.tsx";
 
 interface AudioControlsProps {
   fileUrl: string;
@@ -24,7 +24,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [currentVol, setCurrentVol] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
-  const {settingsData} = useSettingsContext();
+  const { settingsData } = useSettingsContext();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
