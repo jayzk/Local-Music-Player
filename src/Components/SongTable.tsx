@@ -1,26 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import defaultThumbNail from "../../public/assets/default-thumbnail.png";
 import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import EllipsisMenu from "./EllipsisMenu";
 import LoadThumbnail from "./LoadThumbnail";
 
 import { useSettingsContext } from "../Contexts/SettingsContext";
-
-interface Song {
-  SongID: number;
-  Title: string;
-  Artist: string;
-  ThumbnailLocation: string;
-  FileLocation: string;
-  Duration: number;
-}
+import { useSongListContext } from "../Contexts/SongListContext";
 
 export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
   const componentRef = useRef<HTMLDivElement>(null);
-  const [songs, setSongs] = useState<Song[]>([]);
-
+  const {songs} = useSongListContext();
   const { settingsData, setSettingsData } = useSettingsContext();
 
   const handleRowClick = async (fileLocation: string) => {
@@ -60,27 +50,6 @@ export default function () {
       setIsSubMenuVisible(false);
     }
   };
-
-  useEffect(() => {
-    const getSongs = async () => {
-      console.log("SongTable -> fetching songs from table");
-      const result = await window.ipcRenderer.invoke("fetch-songs");
-      if (result.success) {
-        setSongs(result.data);
-      } else {
-        console.error("Error: ", result.message);
-      }
-    };
-
-    getSongs();
-  }, [settingsData?.selectedDir]); //re-render everytime selectedDir in settings changes
-
-  //log song data
-  useEffect(() => {
-    if (songs) {
-      console.log("Fetched Songs: ", songs);
-    }
-  }, [songs]);
 
   useEffect(() => {
     if (isSubMenuVisible) {

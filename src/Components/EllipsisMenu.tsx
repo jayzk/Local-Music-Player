@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Description, Dialog, DialogPanel, DialogTitle, DialogBackdrop } from '@headlessui/react'
 import { useToastContext } from "../Contexts/ToastContext";
+import { useSongListContext } from "../Contexts/SongListContext";
 
 type EllipsisMenuProps = {
   song: any;
@@ -10,6 +11,7 @@ type EllipsisMenuProps = {
 export default function EllipsisMenu( { song, onClick }: EllipsisMenuProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const toast = useToastContext();
+  const {updateSongList} = useSongListContext();
 
   const handleRemove = () => {
     console.log("Remove button: ", song);
@@ -24,6 +26,7 @@ export default function EllipsisMenu( { song, onClick }: EllipsisMenuProps) {
     setIsDialogOpen(false);
     const result = await window.ipcRenderer.invoke("delete-song", song.SongID);
     if(result.success) {
+      updateSongList();
       toast.success(result.message);
     } else {
       toast.error(result.message);

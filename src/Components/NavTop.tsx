@@ -2,10 +2,12 @@ import { MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/20/solid";
 import React, { useEffect, useState } from "react";
 
 import { useSettingsContext } from "../Contexts/SettingsContext";
+import { useSongListContext } from "../Contexts/SongListContext";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
   const { settingsData, setSettingsData } = useSettingsContext();
+  const {updateSongList} = useSongListContext();
 
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
@@ -29,6 +31,7 @@ export default function NavTop() {
 
   const handleRefresh = async () => {
     await window.ipcRenderer.invoke("add-folder-files");
+    updateSongList();
   };
 
   //re-render when settingsData updates
