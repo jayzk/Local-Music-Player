@@ -36,7 +36,7 @@ export default function Toast({id, message, type}: ToastProps) {
 
     const removeTimer = setTimeout(() => {
       handleDismiss();
-    }, 5000);
+    }, 5000); //give extra time for the fade out animation
 
     return () => {
       clearTimeout(timer);

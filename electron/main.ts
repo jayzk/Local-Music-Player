@@ -394,14 +394,35 @@ ipcMain.handle("fetch-songs", async () => {
 
 ipcMain.handle("delete-song", async (event, songID) => {
   try {
+    //wait for db to be initialized
     await waitForDbInitialization();
 
+    //read settings
+    const settingsData = await readSettings();
+
+    //delete song file and thumbnail
+    const query = "SELECT ThumbnailLocation, FileLocation FROM Song WHERE SongID = ?"
+    const songData = db?.prepare(query).get(songID);
+
+    const songFileLocation = path.join(settingsData?.selectedDir, (songData as any).FileLocation);
+    const songThumbnailLocation = path.join(settingsData?.selectedDir, (songData as any).ThumbnailLocation);
+
+    console.log("Deleting audio file: ", songFileLocation);
+    console.log("Deleting thumbnail file: ", songThumbnailLocation);
+
+    fs.unlinkSync(songFileLocation);
+    if(songThumbnailLocation !== '') {
+      fs.unlinkSync(songThumbnailLocation);
+    }
+
+    //delete song from sqlite database
     const deleteStmt = db?.prepare('DELETE FROM Song WHERE SongID = ?');
     deleteStmt?.run(songID);
-    return { success: true};
+
+    return { success: true, message: 'Delete successful!'};
   } catch (error) {
     console.error('Error fetching from song table:', error);
-    return { success: false, message: 'Error fetching songs' };
+    return { success: false, message: 'Error deleting file' };
   }
 })
 

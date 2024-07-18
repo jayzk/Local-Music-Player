@@ -117,13 +117,13 @@ export default function () {
       <div className="scroller h-[90%] overflow-hidden overflow-y-auto">
         <table className="w-full table-fixed">
           <tbody className="text-slate-100">
-            {songs.map((song) => (
+            {songs.map((song, index) => (
               <tr
                 key={song.SongID}
                 className="group cursor-pointer hover:bg-slate-600"
                 onClick={() => handleRowClick(song.FileLocation)}
               >
-                <td className="w-10 lg:w-16 xl:w-24">{song.SongID}</td>
+                <td className="w-10 lg:w-16 xl:w-24">{index + 1}</td>
                 <td className="w-64 lg:w-80 xl:w-96">
                   <div className="flex items-center">
                     <LoadThumbnail thumbnailPath={song.ThumbnailLocation} />
