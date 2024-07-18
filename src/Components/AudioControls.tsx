@@ -30,7 +30,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
   const volSliderRef = useRef<HTMLInputElement | null>(null);
 
-  //run whenever settingsData changes
+  //run whenever settingsData volume changes
   useEffect(() => {
     console.log("Running audio setting updates");
     const audio = audioRef.current;
@@ -41,12 +41,17 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       console.log("Volume from settings: ", settingsData?.volume);
       console.log("Current volume: ", audio.volume);
     }
-  }, [settingsData]);
+  }, [settingsData?.volume]);
 
-  //functions for music player (run on mount as well)
+  //render everytime fileUrl changes
   useEffect(() => {
     console.log("Running time updates");
     const audio = audioRef.current;
+
+    //reset current time, duration and is playing state
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
 
     if (audio) {
       const updateCurrentTime = () => {
@@ -72,7 +77,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         audio.removeEventListener("timeupdate", updateCurrentTime);
       };
     }
-  }, []);
+  }, [fileUrl]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);

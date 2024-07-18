@@ -11,7 +11,7 @@ export default function () {
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
   const componentRef = useRef<HTMLDivElement>(null);
   const {songs} = useSongListContext();
-  const { settingsData, setSettingsData } = useSettingsContext();
+  const { settingsData, updateSettings } = useSettingsContext();
 
   const handleRowClick = async (fileLocation: string) => {
     if (fileLocation) {
@@ -27,10 +27,7 @@ export default function () {
       console.log("SongTable -> Now playing: ", absolutePath);
 
       //update settings data
-      const newSettingsData =
-        await window.ipcRenderer.invoke("read-settings-data");
-      console.log("New settings: ", newSettingsData);
-      setSettingsData(newSettingsData);
+      updateSettings();
     }
   };
 

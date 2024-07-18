@@ -419,6 +419,9 @@ ipcMain.handle("delete-song", async (event, songID) => {
     const deleteStmt = db?.prepare('DELETE FROM Song WHERE SongID = ?');
     deleteStmt?.run(songID);
 
+    //reset currentlyPlaying property in settings
+    updateCurrentlyPlaying(settingsData, "");
+
     return { success: true, message: 'Delete successful!'};
   } catch (error) {
     console.error('Error fetching from song table:', error);

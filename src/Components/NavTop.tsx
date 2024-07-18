@@ -6,7 +6,7 @@ import { useSongListContext } from "../Contexts/SongListContext";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
-  const { settingsData, setSettingsData } = useSettingsContext();
+  const { settingsData, updateSettings } = useSettingsContext();
   const {updateSongList} = useSongListContext();
 
   const handleOpenDirDialog = async () => {
@@ -22,10 +22,7 @@ export default function NavTop() {
       );
 
       //update settings data
-      const newSettingsData =
-        await window.ipcRenderer.invoke("read-settings-data");
-      console.log("New settings: ", newSettingsData);
-      setSettingsData(newSettingsData);
+      updateSettings();
     }
   };
 
