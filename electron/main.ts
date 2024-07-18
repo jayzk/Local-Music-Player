@@ -372,10 +372,10 @@ ipcMain.handle("add-folder-files", async () => {
       }
     }
 
-    return { success: true, message: 'Files added to the database' };
+    return { success: true, message: 'Files added to the database!' };
   } catch (error) {
     console.error('Error adding files to the database:', error);
-    return { success: false, message: 'Error adding files to the database' };
+    return { success: false, message: 'Error adding files to the database!' };
   }
 });
 

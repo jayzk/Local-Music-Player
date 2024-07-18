@@ -3,11 +3,13 @@ import React, { useEffect, useState } from "react";
 
 import { useSettingsContext } from "../Contexts/SettingsContext";
 import { useSongListContext } from "../Contexts/SongListContext";
+import { useToastContext } from "../Contexts/ToastContext";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
   const { settingsData, updateSettings } = useSettingsContext();
   const {updateSongList} = useSongListContext();
+  const toast = useToastContext();
 
   const handleOpenDirDialog = async () => {
     const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
@@ -27,8 +29,13 @@ export default function NavTop() {
   };
 
   const handleRefresh = async () => {
-    await window.ipcRenderer.invoke("add-folder-files");
-    updateSongList();
+    const result = await window.ipcRenderer.invoke("add-folder-files");
+    if(result.success) {
+      updateSongList();
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
+    }
   };
 
   //re-render when settingsData updates
