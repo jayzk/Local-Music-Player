@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Description, Dialog, DialogPanel, DialogTitle, DialogBackdrop } from '@headlessui/react'
+import { TrashIcon } from "@heroicons/react/20/solid";
 import { useToastContext } from "../Contexts/ToastContext";
 import { useSongListContext } from "../Contexts/SongListContext";
 import { useSettingsContext } from "../Contexts/SettingsContext";
@@ -49,7 +50,10 @@ export default function EllipsisMenu( { song, onClick }: EllipsisMenuProps) {
         className="p-1 px-2 text-sm text-white hover:bg-slate-600"
         onClick={handleRemove}
       >
-        Remove
+        <div className="flex justify-center items-center">
+          <TrashIcon className="size-4 mr-2" />
+          Remove
+        </div>
       </button>
     </div>
       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} className="relative z-50">
