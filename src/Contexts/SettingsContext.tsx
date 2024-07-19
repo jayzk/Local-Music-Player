@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+type SettingsType = {
+  selectedDir: string,
+  volume: number,
+  currentlyPlaying: string,
+}
+
 type SettingsContextType = {
-  settingsData: any;
+  settingsData: SettingsType;
   updateSettings: () => void;
 };
 
