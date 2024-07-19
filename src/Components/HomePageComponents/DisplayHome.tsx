@@ -1,6 +1,7 @@
 import { FolderIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import DisplayConfirm from "../ui/DisplayConfirm";
+import DisplayPleaseSelect from "../ui/DisplayPleaseSelect";
 import SongTable from "./SongTable";
 
 import { useSettingsContext } from "../../Contexts/SettingsContext";
@@ -35,10 +36,7 @@ export default function DisplayHome() {
   if (!settingsData || settingsData?.selectedDir === "") {
     //No directory/folder is selected
     return (
-      <div className="flex h-full flex-col items-center justify-center text-gray-400">
-        <FolderIcon className="size-48 animate-bounce" />
-        <p>Please select your music directory</p>
-      </div>
+      <DisplayPleaseSelect />
     );
   } else {
     return (
