@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { HomeIcon, MusicalNoteIcon, PlayIcon, BoltIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
-import logo from "../../public/assets/Logo.png"
+import logo from "/assets/Logo.png"
 
 export default function Navbar() {
   const getIcon = (title: string) => {

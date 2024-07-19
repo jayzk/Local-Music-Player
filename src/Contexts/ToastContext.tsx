@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer } from "react";
-import ToastContainer from "../Components/ToastContainer";
+import ToastContainer from "../Components/ui/ToastContainer";
 
 export const ACTIONS = {
   ADD_TOAST: "Add_toast",

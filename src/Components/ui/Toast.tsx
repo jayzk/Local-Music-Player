@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useToastContext } from "../Contexts/ToastContext";
+import { useToastContext } from "../../Contexts/ToastContext";
 
 import {
   CheckBadgeIcon,
@@ -21,11 +21,11 @@ const toastTypes: any = {
   error: {
     icon: <ShieldExclamationIcon className="mr-2 size-5" />,
     color: "bg-red-600",
-  }
-}
+  },
+};
 
-export default function Toast({id, message, type}: ToastProps) {
-  const {icon, color} = toastTypes[type];
+export default function Toast({ id, message, type }: ToastProps) {
+  const { icon, color } = toastTypes[type];
   const toast = useToastContext();
   const [isVisible, setIsVisible] = useState(true);
 
@@ -41,24 +41,26 @@ export default function Toast({id, message, type}: ToastProps) {
     return () => {
       clearTimeout(timer);
       clearTimeout(removeTimer);
-    }
-    
+    };
   }, []);
 
   const handleDismiss = () => {
     console.log("Removing toast: ", id);
     toast.remove(id);
-  }
+  };
 
   return (
     <div
-      className={`flex items-center justify-center ${color} rounded-lg p-3 text-white text-sm shadow-lg transition-opacity duration-500 ${
+      className={`flex items-center justify-center ${color} rounded-lg p-3 text-sm text-white shadow-lg transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
       {icon}
       {message}
-      <button className="ml-1 p-1 rounded-full hover:bg-slate-400" onClick={handleDismiss}>
+      <button
+        className="ml-1 rounded-full p-1 hover:bg-slate-400"
+        onClick={handleDismiss}
+      >
         <XMarkIcon className="size-5" />
       </button>
     </div>

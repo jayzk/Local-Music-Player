@@ -1,6 +1,6 @@
 import "react-h5-audio-player/lib/styles.css";
-import NavTop from "../Components/NavTop";
-import DisplayHome from "../Components/DisplayHome";
+import NavTop from "../Components/HomePageComponents/NavTop";
+import DisplayHome from "../Components/HomePageComponents/DisplayHome";
 
 export default function Home() {
   return (

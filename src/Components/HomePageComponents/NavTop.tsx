@@ -1,14 +1,14 @@
 import { MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/20/solid";
 import React, { useEffect, useState } from "react";
 
-import { useSettingsContext } from "../Contexts/SettingsContext";
-import { useSongListContext } from "../Contexts/SongListContext";
-import { useToastContext } from "../Contexts/ToastContext";
+import { useSettingsContext } from "../../Contexts/SettingsContext";
+import { useSongListContext } from "../../Contexts/SongListContext";
+import { useToastContext } from "../../Contexts/ToastContext";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
   const { settingsData, updateSettings } = useSettingsContext();
-  const {updateSongList} = useSongListContext();
+  const { updateSongList } = useSongListContext();
   const toast = useToastContext();
 
   const handleOpenDirDialog = async () => {
@@ -30,7 +30,7 @@ export default function NavTop() {
 
   const handleRefresh = async () => {
     const result = await window.ipcRenderer.invoke("add-folder-files");
-    if(result.success) {
+    if (result.success) {
       updateSongList();
       toast.success(result.message);
     } else {

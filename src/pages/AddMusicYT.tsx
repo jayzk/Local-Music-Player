@@ -4,8 +4,8 @@ import {
   FolderArrowDownIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
-import CheckBox from "../Components/CheckBox";
-import DownloadingComp from "../Components/DownloadingComp";
+import CheckBox from "../Components/ui/CheckBox";
+import DownloadingComp from "../Components/ui/DownloadingComp";
 import { useToastContext } from "../Contexts/ToastContext";
 
 async function fetchSettings() {
@@ -74,7 +74,7 @@ export default function AddMusicYT() {
   const handleClear = () => {
     console.log("Clearing input field");
     setYtURL("");
-  }
+  };
 
   //run on mount
   useEffect(() => {
@@ -109,11 +109,11 @@ export default function AddMusicYT() {
 
   //log download status
   useEffect(() => {
-    if(downloadStatus) {
+    if (downloadStatus) {
       console.log("DOWNLOAD RESULT", downloadStatus);
       setIsDownloading(false);
 
-      if(downloadStatus.success) {
+      if (downloadStatus.success) {
         toast.success(downloadStatus.message);
       } else {
         toast.error(downloadStatus.message);
@@ -151,9 +151,9 @@ export default function AddMusicYT() {
           </p>
           Downloaded contents will be stored in your music folder
         </div>
-        <div className="flex flex-row relative space-x-2">
+        <div className="relative flex flex-row space-x-2">
           <input
-            className="truncate rounded-lg border-2 pr-10 border-slate-600 bg-slate-600 p-1 text-lg text-white outline-none transition duration-200 focus:border-white"
+            className="truncate rounded-lg border-2 border-slate-600 bg-slate-600 p-1 pr-10 text-lg text-white outline-none transition duration-200 focus:border-white"
             placeholder="Input Youtube URL here..."
             value={ytURL}
             onChange={handleInputChange}

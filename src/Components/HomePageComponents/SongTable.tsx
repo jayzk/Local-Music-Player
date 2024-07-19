@@ -3,14 +3,14 @@ import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import EllipsisMenu from "./EllipsisMenu";
 import LoadThumbnail from "./LoadThumbnail";
 
-import { useSettingsContext } from "../Contexts/SettingsContext";
-import { useSongListContext } from "../Contexts/SongListContext";
+import { useSettingsContext } from "../../Contexts/SettingsContext";
+import { useSongListContext } from "../../Contexts/SongListContext";
 
 export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
   const componentRef = useRef<HTMLDivElement>(null);
-  const {songs} = useSongListContext();
+  const { songs } = useSongListContext();
   const { settingsData, updateSettings } = useSettingsContext();
 
   const handleRowClick = async (fileLocation: string) => {

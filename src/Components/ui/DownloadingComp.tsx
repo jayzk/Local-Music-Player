@@ -1,5 +1,5 @@
 import React from "react";
-import LoadingIcon from "../../public/additional-icons/loadingIcon.tsx";
+import LoadingIcon from "../../../public/additional-icons/loadingIcon.tsx";
 
 type DownloadingCompProps = {
   isDownloading: boolean;

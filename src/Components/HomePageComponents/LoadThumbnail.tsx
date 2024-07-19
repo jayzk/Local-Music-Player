@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import defaultThumbNail from "../../public/assets/default-thumbnail.png";
+import defaultThumbNail from "/assets/default-thumbnail.png";
 
-import { useSettingsContext } from "../Contexts/SettingsContext";
+import { useSettingsContext } from "../../Contexts/SettingsContext";
 
 type LoadThumbnailProps = {
   thumbnailPath: string;

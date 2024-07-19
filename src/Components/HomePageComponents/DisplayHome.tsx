@@ -1,9 +1,9 @@
 import { FolderIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
-import DisplayConfirm from "./DisplayConfirm";
+import DisplayConfirm from "../ui/DisplayConfirm";
 import SongTable from "./SongTable";
 
-import { useSettingsContext } from "../Contexts/SettingsContext";
+import { useSettingsContext } from "../../Contexts/SettingsContext";
 
 export default function DisplayHome() {
   const [isConfirmed, setIsConfirmed] = useState(false);
