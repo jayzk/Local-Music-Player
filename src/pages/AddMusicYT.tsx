@@ -4,6 +4,7 @@ import YTDownloadForm from "../Components/AddMusicPageComponents/YTDownloadForm"
 import { useSettingsContext } from "../Contexts/SettingsContext";
 import DisplayPleaseSelect from "../Components/ui/DisplayPleaseSelect";
 import DisplayConfirm from "../Components/ui/DisplayConfirm";
+import AddMusicMainContainer from "../Components/AddMusicPageComponents/AddMusicMainContainer";
 
 export default function AddMusicYT() {
   const [isConfirmed, setIsConfirmed] = useState(false); //if user has confirmed if they want to initialize the folder
@@ -28,17 +29,20 @@ export default function AddMusicYT() {
 
   let mainContent;
 
-  if (!settingsData || settingsData?.selectedDir === "") { //if no folder is selected
+  if (!settingsData || settingsData?.selectedDir === "") {
+    //if no folder is selected
     mainContent = <DisplayPleaseSelect />;
-  } else if (!isConfirmed && !isInitialized) { //if folder is not initialized
+  } else if (!isConfirmed && !isInitialized) {
+    //if folder is not initialized
     mainContent = (
       <DisplayConfirm
         isConfirmed={isConfirmed}
         setIsConfirmed={setIsConfirmed}
       />
     );
-  } else { //folder is initialized
-    mainContent = <YTDownloadForm />;
+  } else {
+    //folder is initialized
+    mainContent = <AddMusicMainContainer />;
   }
 
   return (
@@ -46,9 +50,7 @@ export default function AddMusicYT() {
       <div className="h-[15%] space-y-2 border-b-2 border-slate-700 py-2">
         <AddMusicNavTop />
       </div>
-      <div className="flex h-[85%] flex-col items-center justify-center space-y-2">
-        {mainContent}
-      </div>
+      <div className="h-[85%]">{mainContent}</div>
     </div>
   );
 }

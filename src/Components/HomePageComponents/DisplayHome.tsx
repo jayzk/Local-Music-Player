@@ -1,5 +1,4 @@
-import { FolderIcon } from "@heroicons/react/24/outline";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DisplayConfirm from "../ui/DisplayConfirm";
 import DisplayPleaseSelect from "../ui/DisplayPleaseSelect";
 import SongTable from "./SongTable";
@@ -12,7 +11,7 @@ export default function DisplayHome() {
 
   const { settingsData } = useSettingsContext();
 
-  //re-render when settingsData updates
+  //re-render when selectedDir in settings updates
   useEffect(() => {
     //check if an sqlite file exists in the new directory
     const checkSqliteFile = async () => {
@@ -25,13 +24,8 @@ export default function DisplayHome() {
       }
     };
 
-    //display new settings data
-    if (settingsData) {
-      console.log("DisplayHome -> Passed settings: ", settingsData);
-    }
-
     checkSqliteFile();
-  }, [settingsData]);
+  }, [settingsData?.selectedDir]);
 
   if (!settingsData || settingsData?.selectedDir === "") {
     //No directory/folder is selected
