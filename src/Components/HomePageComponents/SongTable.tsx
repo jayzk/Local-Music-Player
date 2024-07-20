@@ -93,7 +93,8 @@ export default function () {
                 <td className="w-64 lg:w-80 xl:w-96">
                   <div className="flex items-center">
                     <LoadThumbnail thumbnailPath={song.ThumbnailLocation} />
-                    {song.Title}
+                    <p className="truncate">{song.Title}</p>
+                    
                   </div>
                 </td>
                 <td className="w-24 lg:w-40 xl:w-64">{song.Artist}</td>

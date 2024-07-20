@@ -44,7 +44,7 @@ export default function AddMusicMainContainer() {
       setIsDownloadingPlaylist(true);
 
       const result = await window.ipcRenderer.invoke(
-        "download-yt-audio",
+        "download-yt-playlist",
         ytURL,
         checkedItems,
       );

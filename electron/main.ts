@@ -291,8 +291,10 @@ ipcMain.handle("create-database", async () => {
     db = (await getSqlite3(selectedDB)) as Database;
     console.log("Connected to database: ", db);
     setupDatabase(db);
+    return { success: true, message: 'Database created!'};
   } catch (error) {
     console.error("ERROR: ", error);
+    return { success: false, message: 'Database created!'};
   }
 });
 
@@ -474,6 +476,76 @@ ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {
       '--ffmpeg-location', ffmpegPath,    // Specify ffmpeg binary
       '-P', downloadPath,                 // Specify download path  
       '--no-playlist',                    // Don't download the playlist 
+      '--embed-metadata',                 // get metadata from youtube URL
+      '-f', 'bestaudio',                  // Download best quality audio
+      '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
+    ];
+
+    //construct thumbnail command args
+    let thumbnailArgs: String[] = [];
+    if(checkBoxes.thumbnailChecked) {
+      console.log("Including thumbnail args");
+      thumbnailArgs = [
+        '--write-thumbnail',              // Download thumbnail
+        '-P', 'thumbnail:thumbnails',     // Specify thumbnail download path
+      ];
+    }
+
+    //construct url args
+    const urlArg = ['-x', ytURL,];
+
+    //pass in all args
+    const args = defaultArgs.concat(thumbnailArgs, urlArg);
+
+    console.log("Args passed to yt-dlp: ", args);
+
+    // Wrap spawn in a Promise
+    await new Promise((resolve, reject) => {
+      const child = spawn(ytDlpPath, args);
+
+      child.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+      });
+
+      child.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve({ success: true, message: 'Youtube URL downloaded!' });
+        } else {
+          reject(new Error(`Child process exited with code ${code}`));
+        }
+      });
+    });
+
+    return { success: true, message: 'Youtube URL downloaded!' };
+  } catch (error) {
+    console.error('Error during download:', error);
+    return { success: false, message: `Error downloading Youtube URL!` };
+  }
+});
+
+
+ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
+  try {
+    // Log info
+    console.log("YT playlist URL: ", ytURL);
+    console.log("Checkbox info: ", checkBoxes);
+
+    // Get selected directory to download to
+    const settingsData = await readSettings();
+    const downloadPath = settingsData?.selectedDir;
+    if (!downloadPath) {
+      throw new Error('Download path not found in settings');
+    }
+
+    // Construct default command args
+    const defaultArgs = [
+      '--ffmpeg-location', ffmpegPath,    // Specify ffmpeg binary
+      '-P', downloadPath,                 // Specify download path  
+      '--yes-playlist',                    // download the playlist 
       '--embed-metadata',                 // get metadata from youtube URL
       '-f', 'bestaudio',                  // Download best quality audio
       '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file

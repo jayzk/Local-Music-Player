@@ -32,6 +32,7 @@ export const SongsListProvider = ({ children }: any) => {
   };
 
   useEffect(() => {
+    console.log("selected dir has been updated, updating song list!");
     updateSongList();
   }, [settingsData?.selectedDir]); //re-render everytime selectedDir in settings changes
 
