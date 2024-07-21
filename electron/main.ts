@@ -549,6 +549,9 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
       '--embed-metadata',                 // get metadata from youtube URL
       '-f', 'bestaudio',                  // Download best quality audio
       '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
+      '--progress-template',              // write a custom template for progress output to parse it later
+      "download:[DOWNLOADING]-Downloading item %(info.playlist_autonumber)s of %(info.playlist_count)s", //custom template for progress output
+      '--no-write-playlist-metafiles',    // don't write any metadata for the playlist
     ];
 
     //construct thumbnail command args
@@ -575,6 +578,17 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
 
       child.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
+
+        const output = data.toString();
+        const lines = output.split('\n');
+
+        lines.forEach((line: string) => {
+          if (line.includes('[DOWNLOADING]')) { //parse output
+            console.log(`Filtered stdout: ${line}`);
+            const sendOutput = line.split('-').pop(); //removing [DOWNLOADING] tag
+            win?.webContents.send('playlist-download-progress', sendOutput);
+          }
+        });
       });
 
       child.stderr.on('data', (data) => {
@@ -583,16 +597,16 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
 
       child.on('close', (code) => {
         if (code === 0) {
-          resolve({ success: true, message: 'Youtube URL downloaded!' });
+          resolve({ success: true, message: 'Youtube playlist downloaded!' });
         } else {
           reject(new Error(`Child process exited with code ${code}`));
         }
       });
     });
 
-    return { success: true, message: 'Youtube URL downloaded!' };
+    return { success: true, message: 'Youtube playlist downloaded!' };
   } catch (error) {
     console.error('Error during download:', error);
-    return { success: false, message: `Error downloading Youtube URL!` };
+    return { success: false, message: `Error downloading Youtube playlist!` };
   }
 });

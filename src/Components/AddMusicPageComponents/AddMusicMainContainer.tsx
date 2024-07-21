@@ -4,10 +4,12 @@ import { useState } from "react";
 import DownloadingComp from "../ui/DownloadingComp";
 import { useToastContext } from "../../Contexts/ToastContext";
 import YTDownloadForm from "./YTDownloadForm";
+import useDownloadProgress from "../../Hooks/DownloadProgressHook";
 
 export default function AddMusicMainContainer() {
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
   const [isDownloadingPlaylist, setIsDownloadingPlaylist] = useState(false);
+  const downloadProgress = useDownloadProgress();
 
   const toast = useToastContext();
 
@@ -76,7 +78,7 @@ export default function AddMusicMainContainer() {
             onDownload={handleDownloadSingle}
           />
         </div>
-        <DownloadingComp isDownloading={isDownloadingSingle} />
+        <DownloadingComp isDownloading={isDownloadingSingle} downloadingMsg="Downloading URL..." />
       </div>
 
       <div className="flex h-full w-1/2 flex-col items-center justify-evenly">
@@ -95,7 +97,7 @@ export default function AddMusicMainContainer() {
             onDownload={handleDownloadPlaylist}
           />
         </div>
-        <DownloadingComp isDownloading={isDownloadingPlaylist} />
+        <DownloadingComp isDownloading={isDownloadingPlaylist} downloadingMsg={downloadProgress ? downloadProgress : "Downloading..."}/>
       </div>
     </div>
   );

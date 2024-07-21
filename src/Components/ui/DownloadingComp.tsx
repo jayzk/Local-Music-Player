@@ -1,12 +1,12 @@
-import React from "react";
 import LoadingIcon from "../../../public/additional-icons/loadingIcon.tsx";
 
 type DownloadingCompProps = {
   isDownloading: boolean;
+  downloadingMsg: string;
 };
 
 export default function DownloadingComp({
-  isDownloading,
+  isDownloading, downloadingMsg,
 }: DownloadingCompProps) {
   if (isDownloading) {
     return (
@@ -14,7 +14,7 @@ export default function DownloadingComp({
         <div className="animate-spin">
           <LoadingIcon />
         </div>
-        <p className="text-white">Downloading URL...</p>
+        <p className="text-white">{downloadingMsg}</p>
       </div>
     );
   }
