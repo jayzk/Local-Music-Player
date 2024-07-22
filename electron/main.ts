@@ -549,6 +549,8 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
       '--embed-metadata',                 // get metadata from youtube URL
       '-f', 'bestaudio',                  // Download best quality audio
       '-o', '%(title)s-[%(id)s].%(ext)s', // Specify output format of file
+      '--continue', '--no-overwrites', '--ignore-errors',
+      '--print', "before_dl:[EXTRACT URL]-%(original_url)s", '--no-simulate', '--no-quiet',
       '--progress-template',              // write a custom template for progress output to parse it later
       "download:[DOWNLOADING]-Downloading item %(info.playlist_autonumber)s of %(info.playlist_count)s", //custom template for progress output
       '--no-write-playlist-metafiles',    // don't write any metadata for the playlist
@@ -575,6 +577,7 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
     // Wrap spawn in a Promise
     await new Promise((resolve, reject) => {
       const child = spawn(ytDlpPath, args);
+      let currentURL: string | undefined;
 
       child.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
@@ -583,6 +586,11 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
         const lines = output.split('\n');
 
         lines.forEach((line: string) => {
+          if (line.includes('Extracting URL') && !line.includes('[youtube:tab]')) { //parse output (might want to review, not my custom output, not reliable)          
+            currentURL = line.split(' ').pop(); //removing [EXTRACT URL] tag
+            console.log(`Current URL: ${currentURL}`);
+          }
+
           if (line.includes('[DOWNLOADING]')) { //parse output
             console.log(`Filtered stdout: ${line}`);
             const sendOutput = line.split('-').pop(); //removing [DOWNLOADING] tag
@@ -593,6 +601,14 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
 
       child.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
+        if(currentURL) {
+          const date = new Date();
+          const currentDate = date.toJSON().slice(0,10) + " T" + date.getHours() + date.getMinutes() + date.getSeconds();
+          const errorFileName = "MissedURLs-" + currentDate + ".txt";
+          const errorFile = path.join(settingsData?.selectedDir, errorFileName);
+          console.log("Writing to error file: ", errorFile);
+          fs.appendFileSync(errorFile, currentURL + '\n');
+        }
       });
 
       child.on('close', (code) => {

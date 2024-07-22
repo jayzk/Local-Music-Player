@@ -10,7 +10,7 @@ const useDownloadProgress = () => {
 
     window.ipcRenderer.on('playlist-download-progress', handleProgress);
 
-    return () => {
+    return () => { //TODO: review again
       console.log("DownloadProgressHook: removing listener");
       window.ipcRenderer.off('playlist-download-progress', handleProgress);
     };
