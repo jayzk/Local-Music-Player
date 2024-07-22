@@ -529,6 +529,9 @@ ipcMain.handle("download-yt-audio", async (event, ytURL, checkBoxes) => {
 
 
 ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
+  // count number of missed urls
+  let numOfMissedURLs = 0;
+
   try {
     // Log info
     console.log("YT playlist URL: ", ytURL);
@@ -608,6 +611,7 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
           const errorFile = path.join(settingsData?.selectedDir, errorFileName);
           console.log("Writing to error file: ", errorFile);
           fs.appendFileSync(errorFile, currentURL + '\n');
+          numOfMissedURLs++;
         }
       });
 
@@ -623,6 +627,6 @@ ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
     return { success: true, message: 'Youtube playlist downloaded!' };
   } catch (error) {
     console.error('Error during download:', error);
-    return { success: false, message: `Error downloading Youtube playlist!` };
+    return { success: false, message: `Some errors occured while downloading Youtube playlist! Could not download ${numOfMissedURLs} URLs` };
   }
 });

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
 const useDownloadProgress = () => {
-  const [progress, setProgress] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
 
   useEffect(() => {
     const handleProgress = (event: any, data: string) => {
-      setProgress(data);
+      setDownloadProgress(data);
     };
 
     window.ipcRenderer.on('playlist-download-progress', handleProgress);
@@ -16,7 +16,11 @@ const useDownloadProgress = () => {
     };
   }, []);
 
-  return progress;
+  const resetDownloadProgress = () => {
+    setDownloadProgress(null);
+  };
+
+  return {downloadProgress, resetDownloadProgress};
 };
 
 export default useDownloadProgress;

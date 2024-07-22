@@ -9,7 +9,7 @@ import useDownloadProgress from "../../Hooks/DownloadProgressHook";
 export default function AddMusicMainContainer() {
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
   const [isDownloadingPlaylist, setIsDownloadingPlaylist] = useState(false);
-  const downloadProgress = useDownloadProgress();
+  const {downloadProgress, resetDownloadProgress} = useDownloadProgress();
 
   const toast = useToastContext();
 
@@ -54,9 +54,11 @@ export default function AddMusicMainContainer() {
       if (result.success) {
         toast.success(result.message);
         setIsDownloadingPlaylist(false);
+        resetDownloadProgress();
       } else {
         toast.error(result.message);
         setIsDownloadingPlaylist(false);
+        resetDownloadProgress();
       }
     }
   };
