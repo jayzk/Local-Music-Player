@@ -1,6 +1,7 @@
 import { app } from "electron";
 import fs from "fs";
 import path from "path";
+import { settingsType } from "../public/types";
 
 const divider = "============================";
 const SETTINGS_DATA_PATH = path.join(
@@ -9,7 +10,7 @@ const SETTINGS_DATA_PATH = path.join(
 );
 
 // Define default settings
-const defaultSettings = {
+const defaultSettings: settingsType = {
   selectedDir: "",
   volume: 0.5,
   currentlyPlaying: "",
@@ -44,26 +45,26 @@ export function readSettings(): Promise<any> {
 }
 
 export function writeSettings(data: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        try {
-            fs.writeFileSync(SETTINGS_DATA_PATH, data);
+  return new Promise((resolve, reject) => {
+    try {
+      fs.writeFileSync(SETTINGS_DATA_PATH, data);
 
-            console.log(divider);
-            console.log("Writing data: ", data);
-            console.log(divider);
-            resolve();
-        } catch (error) {
-            console.log('Error writing to settings data: ', error);
-            reject(error);
-        }
-    })
+      console.log(divider);
+      console.log("Writing data: ", data);
+      console.log(divider);
+      resolve();
+    } catch (error) {
+      console.log("Error writing to settings data: ", error);
+      reject(error);
+    }
+  });
 }
 
-export function updateVolume(settings: any, newVol: Number): Promise<void> {
+export function updateVolume(settings: settingsType, newVol: Number): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       //update new volume
-      const newData = {...settings, volume: newVol};
+      const newData = { ...settings, volume: newVol };
 
       //write new settings to file
       writeSettings(JSON.stringify(newData, null, 2));
@@ -76,14 +77,17 @@ export function updateVolume(settings: any, newVol: Number): Promise<void> {
     } catch (error) {
       reject(error);
     }
-  })
+  });
 }
 
-export function updateSelectedDir(settings: any, newDir: string): Promise<void> {
+export function updateSelectedDir(
+  settings: settingsType,
+  newDir: string,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       //update to new directory
-      const newData = {...settings, selectedDir: newDir};
+      const newData = { ...settings, selectedDir: newDir };
 
       //write new settings to file
       writeSettings(JSON.stringify(newData, null, 2));
@@ -96,14 +100,17 @@ export function updateSelectedDir(settings: any, newDir: string): Promise<void> 
     } catch (error) {
       reject(error);
     }
-  })
+  });
 }
 
-export function updateCurrentlyPlaying(settings: any, newAudioFile: string): Promise<void> {
+export function updateCurrentlyPlaying(
+  settings: settingsType,
+  newAudioFile: string,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       //update to new directory
-      const newData = {...settings, currentlyPlaying: newAudioFile};
+      const newData = { ...settings, currentlyPlaying: newAudioFile };
 
       //write new settings to file
       writeSettings(JSON.stringify(newData, null, 2));
@@ -116,5 +123,5 @@ export function updateCurrentlyPlaying(settings: any, newAudioFile: string): Pro
     } catch (error) {
       reject(error);
     }
-  })
+  });
 }

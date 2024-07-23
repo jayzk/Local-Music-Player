@@ -1,24 +1,16 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { useSettingsContext } from "./SettingsContext";
-
-type Song = {
-  SongID: number;
-  Title: string;
-  Artist: string;
-  ThumbnailLocation: string;
-  FileLocation: string;
-  Duration: number;
-};
+import { songType } from "../../public/types";
 
 type SongsContextType = {
-  songs: Song[];
+  songs: songType[];
   updateSongList: () => void;
 };
 
 const SongsContext = createContext<SongsContextType | undefined>(undefined);
 
 export const SongsListProvider = ({ children }: any) => {
-  const [songs, setSongs] = useState<Song[]>([]);
+  const [songs, setSongs] = useState<songType[]>([]);
   const { settingsData } = useSettingsContext();
 
   const updateSongList = async () => {

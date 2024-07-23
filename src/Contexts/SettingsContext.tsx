@@ -1,13 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-type SettingsType = {
-  selectedDir: string,
-  volume: number,
-  currentlyPlaying: string,
-}
+import { settingsType } from "../../public/types.ts";
 
 type SettingsContextType = {
-  settingsData: SettingsType;
+  settingsData: settingsType;
   updateSettings: () => void;
 };
 
@@ -25,7 +20,7 @@ export function useSettingsContext() {
 }
 
 export const SettingsProvider = ({ children }: any) => {
-  const [settingsData, setSettingsData] = useState<any | null>(null);
+  const [settingsData, setSettingsData] = useState<settingsType | null>(null);
 
   const updateSettings = async () => {
     const result = await window.ipcRenderer.invoke("read-settings-data");
@@ -37,7 +32,6 @@ export const SettingsProvider = ({ children }: any) => {
   };
 
   useEffect(() => {
-
     updateSettings();
   }, []);
 

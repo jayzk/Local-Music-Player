@@ -10,9 +10,10 @@ import { TrashIcon } from "@heroicons/react/20/solid";
 import { useToastContext } from "../../Contexts/ToastContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
 import { useSettingsContext } from "../../Contexts/SettingsContext";
+import { songType } from "../../../public/types";
 
 type EllipsisMenuProps = {
-  song: any;
+  song: songType;
   onClick: (event: React.MouseEvent) => void; //used to stop propagation
 };
 
