@@ -16,7 +16,7 @@ const defaultSettings: settingsType = {
   currentlyPlaying: "",
 };
 
-export function readSettings(): Promise<any> {
+export function readSettings(): Promise<settingsType> {
   return new Promise((resolve, reject) => {
     try {
       //if settings file does not exist

@@ -4,9 +4,6 @@ import {
   dialog,
   ipcMain,
   protocol,
-  Response as ElectronResponse,
-  session,
-  ProtocolResponse,
 } from "electron";
 import { fileURLToPath } from "node:url";
 
@@ -21,16 +18,13 @@ import {
   updateSelectedDir,
   updateCurrentlyPlaying,
 } from "./settings";
-import { spawn } from "child_process";
-import { CheckBoxType, settingsType, songType } from "../public/types.ts";
+import { CheckBoxType, songType } from "../public/types.ts";
 
-const ffmpegPath = require("ffmpeg-static"); //using import gives the wrong file path to the executable
 import { parseFile } from "music-metadata";
+import { downloadPlaylist, downloadVideo, FFMPEG_BINARY_PATH, YT_DLP_BINARY_PATH } from "./yt-dlp.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const ytDlpPath = path.join(__dirname, "..", "bin", "yt-dlp.exe");
 
 //for formatting logs
 const divider = "============================";
@@ -160,10 +154,32 @@ function createWindow() {
   console.log(divider);
   console.log("FILE LOCATION: ", __filename);
   console.log("DIRECTORY LOCATION: ", __dirname);
-  console.log("FFMPEG BINARY LOCATION: ", ffmpegPath);
-  console.log("YT-DLP BINARY LOCATION: ", ytDlpPath);
+  console.log("FFMPEG BINARY LOCATION: ", FFMPEG_BINARY_PATH);
+  console.log("YT-DLP BINARY LOCATION: ", YT_DLP_BINARY_PATH);
   console.log(divider);
 }
+
+// Quit when all windows are closed, except on macOS. There, it's common
+// for applications and their menu bar to stay active until the user quits
+// explicitly with Cmd + Q.
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+  }
+});
+
+app.on("activate", () => {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
+app.whenReady().then(() => {
+  createWindow();
+});
 
 // IPC HANDLERS
 
@@ -189,18 +205,6 @@ function waitForDbInitialization(maxRetries = 10, delay = 100): Promise<void> {
     };
 
     checkDb();
-  });
-}
-
-// Function to get all files in the selected directory
-function getAllFilesInDirectory(dirPath: string): string[] {
-  // Read the directory contents
-  const files = fs.readdirSync(dirPath);
-
-  // Filter out directories and return only files
-  return files.filter((file) => {
-    const filePath = path.join(dirPath, file);
-    return fs.statSync(filePath).isFile();
   });
 }
 
@@ -235,7 +239,7 @@ ipcMain.handle("read-settings-data", async () => {
 // IPC handler for writing local settings data
 
 // TODO: may delete later
-ipcMain.handle("write-settings-data", async (event, data) => {
+ipcMain.handle("write-settings-data", async (_event, data) => {
   try {
     await writeSettings(data);
   } catch (error) {
@@ -244,12 +248,12 @@ ipcMain.handle("write-settings-data", async (event, data) => {
   }
 });
 
-ipcMain.handle("update-volume-settings", async (event, newVol: Number) => {
+ipcMain.handle("update-volume-settings", async (_event, newVol: Number) => {
   const settingsData = await readSettings();
   await updateVolume(settingsData, newVol);
 });
 
-ipcMain.handle("update-directory-settings", async (event, newDir: string) => {
+ipcMain.handle("update-directory-settings", async (_event, newDir: string) => {
   //close database connection
   if (db) {
     console.log("closing database connection!");
@@ -263,42 +267,22 @@ ipcMain.handle("update-directory-settings", async (event, newDir: string) => {
 
 ipcMain.handle(
   "update-currentlyPlaying-settings",
-  async (event, newAudioFile: string) => {
+  async (_event, newAudioFile: string) => {
     const settingsData = await readSettings();
     await updateCurrentlyPlaying(settingsData, newAudioFile);
   },
 );
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-  }
-});
-
-app.on("activate", () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-app.whenReady().then(() => {
-  createWindow();
-});
-
 //handlers for the database (HAVE TO WAIT FOR THIS)
 ipcMain.handle("create-database", async () => {
   try {
     const settingsData = await readSettings();
-    const selectedDB = path.join(settingsData?.selectedDir, "music-db.sqlite");
-    db = (await getSqlite3(selectedDB)) as Database;
-    console.log("Connected to database: ", db);
-    setupDatabase(db);
+    if(settingsData) {
+      const selectedDB = path.join(settingsData?.selectedDir, "music-db.sqlite");
+      db = (await getSqlite3(selectedDB)) as Database;
+      console.log("Connected to database: ", db);
+      setupDatabase(db);
+    }
     return { success: true, message: "Database created!" };
   } catch (error) {
     console.error("ERROR: ", error);
@@ -311,7 +295,7 @@ ipcMain.handle("sqlite-file-exists", async () => {
   const settingsData = await readSettings();
   console.log("SELECTED DIRECTORY PATH: ", settingsData?.selectedDir);
 
-  if (settingsData.selectedDir || settingsData.selectedDir !== "") {
+  if (settingsData && (settingsData.selectedDir || settingsData.selectedDir !== "")) {
     //check for .sqlite file
     const files = fs.readdirSync(settingsData?.selectedDir);
     console.log("FILES IN DIRECTORY PATH: ", files);
@@ -334,7 +318,7 @@ ipcMain.handle("sqlite-file-exists", async () => {
   }
 });
 
-//TODO: see if can refactor
+//TODO: NEED to refactor
 ipcMain.handle("add-folder-files", async () => {
   try {
     //wait for db initialization or throw an error if db is not initialized
@@ -344,7 +328,7 @@ ipcMain.handle("add-folder-files", async () => {
     const settingsData = await readSettings();
 
     //specify song folder path and get all it's files
-    const songFolderPath = path.join(settingsData?.selectedDir, "Songs");
+    let songFolderPath = path.join(settingsData?.selectedDir || '', "Songs"); //TODO: review later
     const files = fs.readdirSync(songFolderPath); //change to song folder
 
     // Fetch all existing file locations in the Song table
@@ -364,7 +348,7 @@ ipcMain.handle("add-folder-files", async () => {
     //iterate through all the files
     for (const file of files) {
       const ext = path.extname(file); //check file extension
-      if (ext === ".wav" || ext === ".mp3" || ext === ".opus") {
+      if ((ext === ".wav" || ext === ".mp3" || ext === ".opus") && settingsData) {
         //const settingsData = await readSettings();
 
         //get song file path and it's thumbnail file path (if it has one)
@@ -422,7 +406,7 @@ ipcMain.handle("fetch-songs", async () => {
   }
 });
 
-ipcMain.handle("delete-song", async (event, songID) => {
+ipcMain.handle("delete-song", async (_event, songID) => {
   try {
     //wait for db to be initialized
     await waitForDbInitialization();
@@ -430,34 +414,36 @@ ipcMain.handle("delete-song", async (event, songID) => {
     //read settings
     const settingsData = await readSettings();
 
-    //delete song file and thumbnail
-    const query =
+    if(settingsData) {
+      //delete song file and thumbnail
+      const query =
       "SELECT ThumbnailLocation, FileLocation FROM Song WHERE SongID = ?";
-    const songData = db?.prepare(query).get(songID) as songType;
+      const songData = db?.prepare(query).get(songID) as songType;
 
-    const songFileLocation = path.join(
-      settingsData?.selectedDir,
-      songData.FileLocation,
-    );
-    const songThumbnailLocation = path.join(
-      settingsData?.selectedDir,
-      songData?.ThumbnailLocation,
-    );
+      const songFileLocation = path.join(
+        settingsData?.selectedDir,
+        songData.FileLocation,
+      );
+      const songThumbnailLocation = path.join(
+        settingsData?.selectedDir,
+        songData?.ThumbnailLocation,
+      );
 
-    console.log("Deleting audio file: ", songFileLocation);
-    console.log("Deleting thumbnail file: ", songThumbnailLocation);
+      console.log("Deleting audio file: ", songFileLocation);
+      console.log("Deleting thumbnail file: ", songThumbnailLocation);
 
-    fs.unlinkSync(songFileLocation);
-    if (songThumbnailLocation !== "") {
-      fs.unlinkSync(songThumbnailLocation);
+      fs.unlinkSync(songFileLocation);
+      if (songThumbnailLocation !== "") {
+        fs.unlinkSync(songThumbnailLocation);
+      }
+
+      //delete song from sqlite database
+      const deleteStmt = db?.prepare("DELETE FROM Song WHERE SongID = ?");
+      deleteStmt?.run(songID);
+
+      //reset currentlyPlaying property in settings
+      updateCurrentlyPlaying(settingsData, "");
     }
-
-    //delete song from sqlite database
-    const deleteStmt = db?.prepare("DELETE FROM Song WHERE SongID = ?");
-    deleteStmt?.run(songID);
-
-    //reset currentlyPlaying property in settings
-    updateCurrentlyPlaying(settingsData, "");
 
     return { success: true, message: "Delete successful!" };
   } catch (error) {
@@ -466,7 +452,7 @@ ipcMain.handle("delete-song", async (event, songID) => {
   }
 });
 
-ipcMain.handle("append-filePaths", async (event, path1, path2) => {
+ipcMain.handle("append-filePaths", async (_event, path1, path2) => {
   try {
     //console.log("PATH 1: ", path1);
     //console.log("PATH 2: ", path2);
@@ -495,217 +481,13 @@ ipcMain.handle("meta-test", async () => {
   }
 });
 
-ipcMain.handle(
-  "download-yt-audio",
-  async (event, ytURL, checkBoxes: CheckBoxType) => {
-    try {
-      // Log info
-      console.log("YT URL: ", ytURL);
-      console.log("Checkbox info: ", checkBoxes);
-
-      // Get selected directory to download to
-      const settingsData = await readSettings();
-      const downloadPath = settingsData?.selectedDir;
-      if (!downloadPath) {
-        throw new Error("Download path not found in settings");
-      }
-
-      // Construct default command args
-      const defaultArgs = [
-        "--ffmpeg-location",
-        ffmpegPath, // Specify ffmpeg binary
-        "-P",
-        downloadPath, // Specify download path
-        "--no-playlist", // Don't download the playlist
-        "--embed-metadata", // get metadata from youtube URL
-        "-f",
-        "bestaudio", // Download best quality audio
-        "-o",
-        "Songs/%(title)s-[%(id)s].%(ext)s", // Specify output format of file
-      ];
-
-      //construct thumbnail command args
-      let thumbnailArgs: String[] = [];
-      if (checkBoxes.thumbnailChecked) {
-        console.log("Including thumbnail args");
-        thumbnailArgs = [
-          "--write-thumbnail", // Download thumbnail
-          "-o",
-          "thumbnail:Thumbnails/%(title)s-[%(id)s].%(ext)s", // Specify thumbnail download path
-        ];
-      }
-
-      //construct url args
-      const urlArg = ["-x", ytURL];
-
-      //pass in all args
-      const args = defaultArgs.concat(thumbnailArgs, urlArg);
-
-      console.log("Args passed to yt-dlp: ", args);
-
-      // Wrap spawn in a Promise
-      await new Promise((resolve, reject) => {
-        const child = spawn(ytDlpPath, args);
-
-        child.stdout.on("data", (data) => {
-          console.log(`stdout: ${data}`);
-        });
-
-        child.stderr.on("data", (data) => {
-          console.error(`stderr: ${data}`);
-        });
-
-        child.on("close", (code) => {
-          if (code === 0) {
-            resolve({ success: true, message: "Youtube URL downloaded!" });
-          } else {
-            reject(new Error(`Child process exited with code ${code}`));
-          }
-        });
-      });
-
-      return { success: true, message: "Youtube URL downloaded!" };
-    } catch (error) {
-      console.error("Error during download:", error);
-      return { success: false, message: `Error downloading Youtube URL!` };
-    }
+ipcMain.handle("download-yt-audio", async (_event, ytURL, checkBoxes: CheckBoxType) => {
+    const result = await downloadVideo(ytURL, checkBoxes);
+    return result;
   },
 );
 
-function writeToErrorFile(missedURLs: {url: string, error: string}[], settingsData: settingsType) {
-  
-  if (settingsData) {
-    //create error file name based on current date
-    const date = new Date();
-    const currentDate =
-      date.toJSON().slice(0, 10) +
-      " T" +
-      date.getHours() +
-      date.getMinutes() +
-      date.getSeconds();
-    const errorFileName = "MissedURLs-" + currentDate + ".txt";
-    const errorFile = path.join(settingsData?.selectedDir, errorFileName);
-
-    missedURLs.forEach((obj: {url: string, error: string}) => {
-      fs.appendFileSync(errorFile, "Unable to download url: " + obj.url + "\n" + "Reason -> " + obj.error + "\n\n");
-    });
-    
-    console.log("Writing to error file: ", errorFile);
-  }
-}
-
 ipcMain.handle("download-yt-playlist", async (event, ytURL, checkBoxes) => {
-  const settingsData = await readSettings();
-
-  // count number of missed urls
-  let numOfMissedURLs = 0;
-  let listOfMissedURLs: {url: string, error: string}[] = [];
-
-  try {
-    // Log info
-    console.log("YT playlist URL: ", ytURL);
-    console.log("Checkbox info: ", checkBoxes);
-
-    // Get selected directory to download to
-    const downloadPath = settingsData?.selectedDir;
-    if (!downloadPath) {
-      throw new Error("Download path not found in settings");
-    }
-
-    // Construct default command args
-    const defaultArgs = [
-      "--ffmpeg-location",
-      ffmpegPath, // Specify ffmpeg binary
-      "-P", downloadPath, // Specify download path
-      "--yes-playlist", // download the playlist
-      "--embed-metadata", // get metadata from youtube URL
-      "-f", "bestaudio", // Download best quality audio
-      "-o", "Songs/%(title)s-[%(id)s].%(ext)s", // Specify output format of file
-      "--continue",
-      "--no-overwrites",
-      "--ignore-errors",
-      "--print",
-      "before_dl:[EXTRACT URL]-%(original_url)s",
-      "--no-simulate",
-      "--no-quiet",
-      "--progress-template", // write a custom template for progress output to parse it later
-      "download:[DOWNLOADING]-Downloading item %(info.playlist_autonumber)s of %(info.playlist_count)s", //custom template for progress output
-      "--no-write-playlist-metafiles", // don't write any metadata for the playlist
-    ];
-
-    //construct thumbnail command args
-    let thumbnailArgs: String[] = [];
-    if (checkBoxes.thumbnailChecked) {
-      console.log("Including thumbnail args");
-      thumbnailArgs = [
-        "--write-thumbnail", // Download thumbnail
-        "-o", "thumbnail:Thumbnails/%(title)s-[%(id)s].%(ext)s", // Specify thumbnail download path
-      ];
-    }
-
-    //construct url args
-    const urlArg = ["-x", ytURL];
-
-    //pass in all args
-    const args = defaultArgs.concat(thumbnailArgs, urlArg);
-
-    console.log("Args passed to yt-dlp: ", args);
-
-    // Wrap spawn in a Promise
-    await new Promise((resolve, reject) => {
-      const child = spawn(ytDlpPath, args);
-      let currentURL: string | undefined;
-
-      child.stdout.on("data", (data) => {
-        console.log(`stdout: ${data}`);
-
-        const output = data.toString();
-        const lines = output.split("\n");
-
-        lines.forEach((line: string) => {
-          if (
-            line.includes("Extracting URL") &&
-            !line.includes("[youtube:tab]")
-          ) {
-            //parse output (might want to review, not my custom output, not reliable)
-            currentURL = line.split(" ").pop(); //removing [EXTRACT URL] tag
-            console.log(`Current URL: ${currentURL}`);
-          }
-
-          if (line.includes("[DOWNLOADING]")) {
-            //parse output
-            console.log(`Filtered stdout: ${line}`);
-            const sendOutput = line.split("-").pop(); //removing [DOWNLOADING] tag
-            win?.webContents.send("playlist-download-progress", sendOutput);
-          }
-        });
-      });
-
-      child.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`);
-        if (currentURL) {
-          listOfMissedURLs.push({"url": currentURL, "error": data});
-          numOfMissedURLs++;
-        }
-      });
-
-      child.on("close", (code) => {
-        if (code === 0) {
-          resolve({ success: true, message: "Youtube playlist downloaded!" });
-        } else {
-          reject(new Error(`Child process exited with code ${code}`));
-        }
-      });
-    });
-
-    return { success: true, message: "Youtube playlist downloaded!" };
-  } catch (error) {
-    console.error("Error during download:", error);
-    writeToErrorFile(listOfMissedURLs, settingsData);
-
-    return {
-      success: false,
-      message: `Some errors occured while downloading Youtube playlist! Could not download ${numOfMissedURLs} URLs`,
-    };
-  }
+  const result = await downloadPlaylist(event, ytURL, checkBoxes);
+  return result;
 });
