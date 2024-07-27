@@ -35,23 +35,7 @@ function waitForDbInitialization(maxRetries = 10, delay = 100): Promise<void> {
   });
 }
 
-export function updateDatabaseSchema(database: Database.Database | null) {
-  try {
-    database
-      ?.prepare(
-        `
-        ALTER TABLE Song
-        ADD COLUMN Duration REAL DEFAULT 0
-      `
-      )
-      .run();
-    console.log('Database schema updated successfully');
-  } catch (error) {
-    console.error('Error updating database schema:', error);
-  }
-}
-
-export function setupDatabase(database: Database.Database | null) {
+function setupDatabase(database: Database.Database | null) {
   // Create the "Song" table
   database
     ?.prepare(
@@ -98,7 +82,7 @@ export function setupDatabase(database: Database.Database | null) {
   console.log("Database initialized");
 }
 
-export function getSqlite3(filename: string) {
+function getSqlite3(filename: string) {
   return new Promise((resolve, reject) => {
     try {
       console.log("FILENAME DATA: ", filename);
