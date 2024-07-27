@@ -8,9 +8,7 @@ import {
 import { fileURLToPath } from "node:url";
 
 import * as path from "path";
-import fs from "fs";
-import { Database } from "better-sqlite3";
-import { getSqlite3, setupDatabase } from "./better-sqlite3";
+import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchSongs, insertSongFolder } from "./better-sqlite3";
 import {
   readSettings,
   writeSettings,
@@ -18,9 +16,7 @@ import {
   updateSelectedDir,
   updateCurrentlyPlaying,
 } from "./settings";
-import { CheckBoxType, songType } from "../public/types.ts";
-
-import { parseFile } from "music-metadata";
+import { CheckBoxType } from "../public/types.ts";
 import { downloadPlaylist, downloadVideo, FFMPEG_BINARY_PATH, YT_DLP_BINARY_PATH } from "./yt-dlp.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -183,37 +179,12 @@ app.whenReady().then(() => {
 
 // IPC HANDLERS
 
-// HANDLING DATABASE
-let db: Database | null;
-
-// function to wait for db init
-function waitForDbInitialization(maxRetries = 10, delay = 100): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let retries = 0;
-
-    const checkDb = () => {
-      if (db) {
-        resolve();
-      } else {
-        retries++;
-        if (retries > maxRetries) {
-          reject(new Error("Database not initialized"));
-        } else {
-          setTimeout(checkDb, delay);
-        }
-      }
-    };
-
-    checkDb();
-  });
-}
-
 // IPC handler for opening file dialog
 ipcMain.handle("open-file-dialog", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openFile"],
   });
-  console.log("TEST FILEPATHS: ", result.filePaths);
+
   return result.filePaths;
 });
 
@@ -222,10 +193,11 @@ ipcMain.handle("open-dir-dialog", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
   });
+
   return result.filePaths;
 });
 
-// IPC handler for reading local settings data (Do we need a IPC handler for this???)
+// IPC handler for reading local settings data
 ipcMain.handle("read-settings-data", async () => {
   try {
     //return settings
@@ -236,30 +208,13 @@ ipcMain.handle("read-settings-data", async () => {
   }
 });
 
-// IPC handler for writing local settings data
-
-// TODO: may delete later
-ipcMain.handle("write-settings-data", async (_event, data) => {
-  try {
-    await writeSettings(data);
-  } catch (error) {
-    console.log("Error writing to settings data: ", error);
-    return null;
-  }
-});
-
 ipcMain.handle("update-volume-settings", async (_event, newVol: Number) => {
   const settingsData = await readSettings();
   await updateVolume(settingsData, newVol);
 });
 
 ipcMain.handle("update-directory-settings", async (_event, newDir: string) => {
-  //close database connection
-  if (db) {
-    console.log("closing database connection!");
-    db?.close();
-    db = null;
-  }
+  closeDatabase();
 
   const settingsData = await readSettings();
   await updateSelectedDir(settingsData, newDir);
@@ -275,181 +230,29 @@ ipcMain.handle(
 
 //handlers for the database (HAVE TO WAIT FOR THIS)
 ipcMain.handle("create-database", async () => {
-  try {
-    const settingsData = await readSettings();
-    if(settingsData) {
-      const selectedDB = path.join(settingsData?.selectedDir, "music-db.sqlite");
-      db = (await getSqlite3(selectedDB)) as Database;
-      console.log("Connected to database: ", db);
-      setupDatabase(db);
-    }
-    return { success: true, message: "Database created!" };
-  } catch (error) {
-    console.error("ERROR: ", error);
-    return { success: false, message: "Database created!" };
-  }
+  const result = await createDatabase();
+  return result;
 });
 
 //IPC handler for checking for sqlite files (HAVE TO WAIT FOR THIS)
 ipcMain.handle("sqlite-file-exists", async () => {
-  const settingsData = await readSettings();
-  console.log("SELECTED DIRECTORY PATH: ", settingsData?.selectedDir);
-
-  if (settingsData && (settingsData.selectedDir || settingsData.selectedDir !== "")) {
-    //check for .sqlite file
-    const files = fs.readdirSync(settingsData?.selectedDir);
-    console.log("FILES IN DIRECTORY PATH: ", files);
-    const sqliteFile = files.find((file) => path.extname(file) === ".sqlite");
-
-    if (sqliteFile) {
-      console.log(`Found .sqlite file: ${sqliteFile}`);
-
-      const selectedDir = path.join(settingsData?.selectedDir, sqliteFile);
-      db = (await getSqlite3(selectedDir)) as Database;
-
-      console.log("Connected to new database: ", db);
-      return true;
-    } else {
-      console.log("No .sqlite file found in the directory.");
-      return false;
-    }
-  } else {
-    return false;
-  }
+  const result = await detectSqliteFile();
+  return result;
 });
 
-//TODO: NEED to refactor
 ipcMain.handle("add-folder-files", async () => {
-  try {
-    //wait for db initialization or throw an error if db is not initialized
-    await waitForDbInitialization();
-
-    //get settings data
-    const settingsData = await readSettings();
-
-    //specify song folder path and get all it's files
-    let songFolderPath = path.join(settingsData?.selectedDir || '', "Songs"); //TODO: review later
-    const files = fs.readdirSync(songFolderPath); //change to song folder
-
-    // Fetch all existing file locations in the Song table
-    const existingFilesQuery = db?.prepare("SELECT FileLocation FROM Song");
-    const existingFiles = existingFilesQuery?.all() || [];
-
-    // Store existing file locations in a Set for quick lookup
-    const existingFilePaths = new Set(
-      existingFiles.map((row) => (row as any).FileLocation),
-    );
-
-    //prepare sql statement
-    const insert = db?.prepare(
-      "INSERT INTO Song (Title, Artist, Duration, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?)",
-    );
-
-    //iterate through all the files
-    for (const file of files) {
-      const ext = path.extname(file); //check file extension
-      if ((ext === ".wav" || ext === ".mp3" || ext === ".opus") && settingsData) {
-        //const settingsData = await readSettings();
-
-        //get song file path and it's thumbnail file path (if it has one)
-        const filePath = path.join(songFolderPath, file);
-        const thumbnailCheckPath = path.join(
-          settingsData?.selectedDir,
-          "Thumbnails",
-          path.parse(file).name + ".webp",
-        ); //TODO" review
-
-        //get metadata information of the file
-        const metadata = await parseFile(filePath);
-        const title = metadata.common.title || "";
-        const artist = metadata.common.artist || "";
-        const duration = metadata.format.duration || "";
-
-        //check if the thumbnail path exists or not
-        let thumbnailPath;
-        if (fs.existsSync(thumbnailCheckPath)) {
-          thumbnailPath = path.join(
-            "thumbnails",
-            path.parse(file).name + ".webp",
-          );
-        } else {
-          thumbnailPath = "";
-        }
-
-        const songFilePath = path.join("Songs/", file);
-        //only insert into database if it does not exist
-        if (!existingFilePaths.has(songFilePath)) {
-          
-          console.log("Adding file to database: ", songFilePath);
-          insert?.run(title, artist, duration, thumbnailPath, songFilePath);
-        }
-      }
-    }
-
-    return { success: true, message: "Files added to the database!" };
-  } catch (error) {
-    console.error("Error adding files to the database:", error);
-    return { success: false, message: "Error adding files to the database!" };
-  }
+  const result = await insertSongFolder();
+  return result;
 });
 
 ipcMain.handle("fetch-songs", async () => {
-  try {
-    await waitForDbInitialization();
-
-    const stmt = db?.prepare("SELECT * FROM Song");
-    const songs = stmt?.all();
-    return { success: true, data: songs };
-  } catch (error) {
-    console.error("Error fetching from song table:", error);
-    return { success: false, message: "Error fetching songs" };
-  }
+  const result = await fetchSongs();
+  return result;
 });
 
-ipcMain.handle("delete-song", async (_event, songID) => {
-  try {
-    //wait for db to be initialized
-    await waitForDbInitialization();
-
-    //read settings
-    const settingsData = await readSettings();
-
-    if(settingsData) {
-      //delete song file and thumbnail
-      const query =
-      "SELECT ThumbnailLocation, FileLocation FROM Song WHERE SongID = ?";
-      const songData = db?.prepare(query).get(songID) as songType;
-
-      const songFileLocation = path.join(
-        settingsData?.selectedDir,
-        songData.FileLocation,
-      );
-      const songThumbnailLocation = path.join(
-        settingsData?.selectedDir,
-        songData?.ThumbnailLocation,
-      );
-
-      console.log("Deleting audio file: ", songFileLocation);
-      console.log("Deleting thumbnail file: ", songThumbnailLocation);
-
-      fs.unlinkSync(songFileLocation);
-      if (songThumbnailLocation !== "") {
-        fs.unlinkSync(songThumbnailLocation);
-      }
-
-      //delete song from sqlite database
-      const deleteStmt = db?.prepare("DELETE FROM Song WHERE SongID = ?");
-      deleteStmt?.run(songID);
-
-      //reset currentlyPlaying property in settings
-      updateCurrentlyPlaying(settingsData, "");
-    }
-
-    return { success: true, message: "Delete successful!" };
-  } catch (error) {
-    console.error("Error fetching from song table:", error);
-    return { success: false, message: "Error deleting file" };
-  }
+ipcMain.handle("delete-song", async (_event, songID: number) => {
+  const result = await deleteSong(songID);
+  return result;
 });
 
 ipcMain.handle("append-filePaths", async (_event, path1, path2) => {
@@ -461,23 +264,6 @@ ipcMain.handle("append-filePaths", async (_event, path1, path2) => {
     return "media-loader:///" + absPath; //add custom protocol
   } catch (error) {
     console.error("Error joining file paths: ", error);
-  }
-});
-
-//TODO: delete later
-ipcMain.handle("meta-test", async () => {
-  try {
-    const filePath = path.join(
-      "C:/Users/jayde/Documents/TestDir/Test1/Barns Courtney - Champion (Official Audio)-[HLEn5MyXUfE].opus",
-    );
-    const metadata = await parseFile(filePath);
-    const title = metadata.common.title || "";
-    console.log("TEST TITLE: ", title);
-
-    return { success: true, message: "Files added to the database" };
-  } catch (error) {
-    console.error("Error adding files to the database:", error);
-    return { success: false, message: "Error adding files to the database" };
   }
 });
 

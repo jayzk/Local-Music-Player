@@ -37,3 +37,8 @@ export function getAllFilesInDirectory(dirPath: string): string[] {
       return fs.statSync(filePath).isFile();
     });
   }
+
+export function isValidAudioExt(ext: string) {
+  const validExtensions = [".wav", ".mp3", ".opus"];
+  return validExtensions.includes(ext);
+}
