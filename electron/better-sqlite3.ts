@@ -101,6 +101,19 @@ function getSqlite3(filename: string) {
   });
 }
 
+function getExistingFilePaths() {
+  // Fetch all existing file locations in the Song table
+  const existingFilesQuery = database?.prepare("SELECT FileLocation FROM Song");
+  const existingFiles = existingFilesQuery?.all() || [];
+
+  // Store existing file locations in a Set for quick lookup
+  const existingFilePaths = new Set(
+    existingFiles.map((row) => (row as any).FileLocation),
+  );
+
+  return existingFilePaths;
+};
+
 export async function createDatabase() {
   try {
     const settingsData = await readSettings();
@@ -155,69 +168,85 @@ export async function insertSongFolder() {
     //specify song folder path and get all it's files
     let songFolderPath = path.join(settingsData?.selectedDir || '', "Songs"); //TODO: review later
     const files = fs.readdirSync(songFolderPath); //change to song folder
+    
+    const existingFilePaths = getExistingFilePaths(); //TODO: make this global????
 
-    // Fetch all existing file locations in the Song table
-    const existingFilesQuery = database?.prepare("SELECT FileLocation FROM Song");
-    const existingFiles = existingFilesQuery?.all() || [];
-
-    // Store existing file locations in a Set for quick lookup
-    const existingFilePaths = new Set(
-      existingFiles.map((row) => (row as any).FileLocation),
-    );
-
-    //prepare sql statement
-    const insert = database?.prepare(
-      "INSERT INTO Song (Title, Artist, Duration, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?)",
-    );
+    let result;
 
     //iterate through all the files
     for (const file of files) {
-      const ext = path.extname(file); //check file extension
-      if (isValidAudioExt(ext) && settingsData) {
-        //get song file path and it's thumbnail file path (if it has one)
-        const filePath = path.join(songFolderPath, file);
-        const thumbnailCheckPath = path.join(
-          settingsData?.selectedDir,
-          "Thumbnails",
-          path.parse(file).name + ".webp",
-        ); //TODO" review
-
-        //get metadata information of the file
-        const metadata = await parseFile(filePath);
-        const title = metadata.common.title || "";
-        const artist = metadata.common.artist || "";
-        const duration = metadata.format.duration || "";
-
-        //check if the thumbnail path exists or not
-        let thumbnailPath;
-        if (fs.existsSync(thumbnailCheckPath)) {
-          thumbnailPath = path.join(
-            "thumbnails",
-            path.parse(file).name + ".webp",
-          );
-        } else {
-          thumbnailPath = "";
-        }
-
-        const songFilePath = path.join("Songs/", file);
-        //only insert into database if it does not exist
-        if (!existingFilePaths.has(songFilePath)) {
-          
-          console.log("Adding file to database: ", songFilePath);
-          insert?.run(title, artist, duration, thumbnailPath, songFilePath);
-        }
-      }
+      result = await insertSong(songFolderPath, file, existingFilePaths);
     }
 
-    return { success: true, message: "Files added to the database!" };
+    if(result?.success) {
+      return { success: true, message: "Files added to the database!" };
+    } else {
+      return { success: false, message: "Error adding files to the database!" };
+    }
+    
   } catch (error) {
     console.error("Error adding files to the database:", error);
     return { success: false, message: "Error adding files to the database!" };
   }
 }
 
-export function insertRow() {
+export async function insertSong(songFolderPath: string, file: string, existingFilePaths: Set<any>) {
+  try {
+    //wait for db initialization or throw an error if db is not initialized
+    await waitForDbInitialization();
 
+    //get settings data
+    const settingsData = await readSettings();
+
+    //prepare insert statement
+    const insert = database?.prepare(
+      "INSERT INTO Song (Title, Artist, Duration, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?)",
+    );
+
+    const ext = path.extname(file);
+
+    if (isValidAudioExt(ext) && settingsData) {
+      //get song file path
+      const filePath = path.join(songFolderPath, file);
+
+      //get metadata information of the file
+      const metadata = await parseFile(filePath);
+      const title = metadata.common.title || "";
+      const artist = metadata.common.artist || "";
+      const duration = metadata.format.duration || "";
+
+      //check if the thumbnail path exists or not
+      let thumbnailPath;
+      const thumbnailCheckPath = path.join(
+        settingsData?.selectedDir,
+        "Thumbnails",
+        path.parse(file).name + ".webp",
+      ); //TODO" review
+
+      if (fs.existsSync(thumbnailCheckPath)) {
+        thumbnailPath = path.join(
+          "thumbnails",
+          path.parse(file).name + ".webp",
+        );
+      } else {
+        thumbnailPath = "";
+      }
+
+      const songDbFilePath = path.join("Songs/", file);
+      //only insert into database if it does not exist
+      if (!existingFilePaths.has(songDbFilePath)) {
+        
+        console.log("Adding file to database: ", songDbFilePath);
+        insert?.run(title, artist, duration, thumbnailPath, songDbFilePath);
+      }
+    }
+
+    return { success: true, message: "Audio file added to the database!" };
+    
+  } catch (error) {
+    console.error("Error adding audio file to the database:", error);
+    return { success: false, message: "Error audio file to the database!" };
+  }
 }
 
 export async function deleteSong(songID: number) {
