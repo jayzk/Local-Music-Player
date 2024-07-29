@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { useSettingsContext } from "./SettingsContext";
 import { songType } from "../../public/types";
 
@@ -24,6 +24,9 @@ export const SongsListProvider = ({ children }: any) => {
   };
 
   useEffect(() => {
+    //empty song list
+    setSongs([]);
+
     console.log("selected dir has been updated, updating song list!");
     updateSongList();
   }, [settingsData?.selectedDir]); //re-render everytime selectedDir in settings changes

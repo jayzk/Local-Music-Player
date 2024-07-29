@@ -22,7 +22,8 @@ export default function Home() {
         setIsConfirmed(false); //reset confirm state
       }
     };
-
+    
+    setIsInitialized(false);
     checkSqliteFile();
   }, [settingsData?.selectedDir]);
 
@@ -31,7 +32,7 @@ export default function Home() {
   if (!settingsData || settingsData?.selectedDir === "") {
     //if no folder is selected
     mainContent = <DisplayPleaseSelect />;
-  } else if (!isConfirmed && !isInitialized) {
+  } else if (!isInitialized && !isConfirmed) {
     //if folder is not initialized
     mainContent = (
       <DisplayConfirm
