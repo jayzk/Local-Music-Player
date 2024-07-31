@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useSongListContext } from "../../Contexts/SongListContext";
+import { createDatabase } from "../../utils/IpcUtils";
 
 type DisplayConfirmProps = {
   isConfirmed: boolean;
@@ -17,7 +18,7 @@ export default function DisplayConfirm({
     setIsConfirmed((prevIsConfirmed: boolean) => !prevIsConfirmed);
     console.log("Toggling previous confirm state: ", isConfirmed);
 
-    const result = await window.ipcRenderer.invoke("create-database");
+    const result = await createDatabase();
     if(result.success) {
       updateSongList(); //TODO: is there a better way to do this???
     } else {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import defaultThumbNail from "/assets/default-thumbnail.png";
 
 import { useSettingsContext } from "../../Contexts/SettingsContext";
+import { appendFilePaths } from "../../utils/IpcUtils";
 
 type LoadThumbnailProps = {
   thumbnailPath: string;
@@ -16,11 +17,7 @@ export default function LoadThumbnail({ thumbnailPath }: LoadThumbnailProps) {
       try {
         console.log("LoadThumbnail -> Fetching thumbnail");
         if (thumbnailPath !== "") {
-          const src = await window.ipcRenderer.invoke(
-            "append-filePaths",
-            settingsData?.selectedDir,
-            thumbnailPath,
-          );
+          const src = await appendFilePaths(settingsData?.selectedDir, thumbnailPath);
           setThumbnailSrc(src);
         }
       } catch (error) {

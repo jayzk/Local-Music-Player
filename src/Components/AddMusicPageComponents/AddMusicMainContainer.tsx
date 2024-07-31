@@ -5,6 +5,7 @@ import DownloadingComp from "../ui/DownloadingComp";
 import { useToastContext } from "../../Contexts/ToastContext";
 import YTDownloadForm from "./YTDownloadForm";
 import useDownloadProgress from "../../Hooks/DownloadProgressHook";
+import { downloadYtAudio, downloadYtPlaylist } from "../../utils/IpcUtils";
 
 export default function AddMusicMainContainer() {
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
@@ -21,11 +22,7 @@ export default function AddMusicMainContainer() {
       console.log("Downloading yt url");
       setIsDownloadingSingle(true);
 
-      const result = await window.ipcRenderer.invoke(
-        "download-yt-audio",
-        ytURL,
-        checkedItems,
-      );
+      const result = await downloadYtAudio(ytURL, checkedItems);
 
       if (result.success) {
         toast.success(result.message);
@@ -42,14 +39,9 @@ export default function AddMusicMainContainer() {
     checkedItems: { [key: string]: boolean },
   ) => {
     if (ytURL) {
-      console.log("Downloading yt playlist");
       setIsDownloadingPlaylist(true);
 
-      const result = await window.ipcRenderer.invoke(
-        "download-yt-playlist",
-        ytURL,
-        checkedItems,
-      );
+      const result = await downloadYtPlaylist(ytURL, checkedItems);
 
       if (result.success) {
         toast.success(result.message);

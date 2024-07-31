@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSettingsContext } from "../../Contexts/SettingsContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
 import { useToastContext } from "../../Contexts/ToastContext";
+import { insertSongFolder, selectDirectory, updateSelectedDirSettings } from "../../utils/IpcUtils";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
@@ -12,16 +13,12 @@ export default function NavTop() {
   const toast = useToastContext();
 
   const handleOpenDirDialog = async () => {
-    const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
+    const filePaths = await selectDirectory();
     if (filePaths.length > 0) {
       setSelectedDirPath(filePaths[0]); //update for rendering
 
       //get new directory
-      console.log("New directory selected: ", filePaths[0]);
-      await window.ipcRenderer.invoke(
-        "update-directory-settings",
-        filePaths[0],
-      );
+      await updateSelectedDirSettings(filePaths[0]);
 
       //update settings data
       updateSettings();
@@ -29,7 +26,7 @@ export default function NavTop() {
   };
 
   const handleRefresh = async () => {
-    const result = await window.ipcRenderer.invoke("add-folder-files");
+    const result = await insertSongFolder();
     if (result.success) {
       updateSongList();
       toast.success(result.message);

@@ -11,6 +11,7 @@ import { useToastContext } from "../../Contexts/ToastContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
 import { useSettingsContext } from "../../Contexts/SettingsContext";
 import { songType } from "../../../public/types";
+import { deleteSong } from "../../utils/IpcUtils";
 
 type EllipsisMenuProps = {
   song: songType;
@@ -34,7 +35,7 @@ export default function EllipsisMenu({ song, onClick }: EllipsisMenuProps) {
 
   const handleDialogDelete = async () => {
     setIsDialogOpen(false);
-    const result = await window.ipcRenderer.invoke("delete-song", song.SongID);
+    const result = await deleteSong(song.SongID);
     if (result.success) {
       updateSongList();
 

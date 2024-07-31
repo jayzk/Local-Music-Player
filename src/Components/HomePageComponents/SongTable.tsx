@@ -5,6 +5,7 @@ import LoadThumbnail from "./LoadThumbnail";
 
 import { useSettingsContext } from "../../Contexts/SettingsContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
+import { appendFilePaths, updateCurrentlyPlayingSettings } from "../../utils/IpcUtils";
 
 export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
@@ -15,16 +16,9 @@ export default function () {
 
   const handleRowClick = async (fileLocation: string) => {
     if (fileLocation) {
-      const absolutePath = await window.ipcRenderer.invoke(
-        "append-filePaths",
-        settingsData?.selectedDir,
-        fileLocation,
-      );
-      await window.ipcRenderer.invoke(
-        "update-currentlyPlaying-settings",
-        absolutePath,
-      );
-      console.log("SongTable -> Now playing: ", absolutePath);
+      const absolutePath = await appendFilePaths(settingsData?.selectedDir, fileLocation);
+
+      await updateCurrentlyPlayingSettings(absolutePath);
 
       //update settings data
       updateSettings();

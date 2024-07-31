@@ -12,6 +12,7 @@ import Shuffle from "../../public/additional-icons/shuffle.tsx";
 import React, { useEffect, useRef, useState } from "react";
 
 import { useSettingsContext } from "../Contexts/SettingsContext.tsx";
+import { updateVolumeSettings } from "../utils/IpcUtils.ts";
 
 interface AudioControlsProps {
   fileUrl: string;
@@ -136,9 +137,8 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         audio.volume = newVol;
       }
       setCurrentVol(newVol); //used to update the slider render only
-      await window.ipcRenderer.invoke("update-volume-settings", newVol); //update new volume in settings
+      await updateVolumeSettings(newVol);
 
-      console.log("setting volume time to: ", newVol);
       console.log("audio.volume is: ", audio.volume);
     }
   };

@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import { useSettingsContext } from "./SettingsContext";
 import { songType } from "../../public/types";
+import { fetchSongs } from "../utils/IpcUtils";
 
 type SongsContextType = {
   songs: songType[];
@@ -14,8 +15,7 @@ export const SongsListProvider = ({ children }: any) => {
   const { settingsData } = useSettingsContext();
 
   const updateSongList = async () => {
-    console.log("SongListContext -> fetching songs from table");
-    const result = await window.ipcRenderer.invoke("fetch-songs");
+    const result = await fetchSongs();
     if (result.success) {
       setSongs(result.data);
     } else {

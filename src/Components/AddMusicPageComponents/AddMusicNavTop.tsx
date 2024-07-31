@@ -1,21 +1,18 @@
 import { FolderIcon } from '@heroicons/react/20/solid'
 import { useSettingsContext } from '../../Contexts/SettingsContext';
+import { selectDirectory, updateVolumeSettings } from '../../utils/IpcUtils';
 
 export default function () {
     const {settingsData, updateSettings} = useSettingsContext();
 
     const handleOpenDirDialog = async () => {
-        const filePaths = await window.ipcRenderer.invoke("open-dir-dialog");
+        const filePaths = await selectDirectory();
         if (filePaths.length > 0) {
           //get new directory
-          console.log("New directory selected: ", filePaths[0]);
-          await window.ipcRenderer.invoke(
-            "update-directory-settings",
-            filePaths[0],
-          );
+          await updateVolumeSettings(filePaths[0]);
     
           //update settings data
-          updateSettings();
+          updateSettings(); //TODO: may move this into ipcUtils.ts
         }
       };
 

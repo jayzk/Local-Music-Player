@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { settingsType } from "../../public/types.ts";
+import { readSettingsData } from "../utils/IpcUtils.ts";
 
 type SettingsContextType = {
   settingsData: settingsType;
@@ -23,7 +24,7 @@ export const SettingsProvider = ({ children }: any) => {
   const [settingsData, setSettingsData] = useState<settingsType | null>(null);
 
   const updateSettings = async () => {
-    const result = await window.ipcRenderer.invoke("read-settings-data");
+    const result = await readSettingsData();
     if (result) {
       setSettingsData(result);
     } else {

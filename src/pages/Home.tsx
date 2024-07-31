@@ -4,6 +4,7 @@ import { useSettingsContext } from "../Contexts/SettingsContext";
 import DisplayPleaseSelect from "../Components/ui/DisplayPleaseSelect";
 import DisplayConfirm from "../Components/ui/DisplayConfirm";
 import SongTable from "../Components/HomePageComponents/SongTable";
+import { doesSqliteFileExist } from "../utils/IpcUtils";
 
 export default function Home() {
   const [isConfirmed, setIsConfirmed] = useState(false); //if user has confirmed if they want to initialize the folder
@@ -15,9 +16,8 @@ export default function Home() {
     //check if an sqlite file exists in the new directory
     const checkSqliteFile = async () => {
       if (settingsData) {
-        const sqliteFileExists =
-          await window.ipcRenderer.invoke("sqlite-file-exists");
-        console.log("Does sqlite file exist: ", sqliteFileExists);
+        const sqliteFileExists = await doesSqliteFileExist();
+
         setIsInitialized(sqliteFileExists);
         setIsConfirmed(false); //reset confirm state
       }
