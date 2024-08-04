@@ -14,6 +14,8 @@ const root = path.join(__dirname, "..");
 const TAG = "[better-sqlite3]";
 let database: Database.Database | null;
 
+let existingFilePathsInDB: Set<any> = new Set();
+
 function waitForDbInitialization(maxRetries = 10, delay = 100): Promise<void> {
   return new Promise((resolve, reject) => {
     let retries = 0;
@@ -112,17 +114,47 @@ function getExistingFilePaths() {
   );
 
   return existingFilePaths;
-};
+}
+
+async function updateExistingFilePaths() {
+  try {
+    await waitForDbInitialization();
+    // Fetch all existing file locations in the Song table
+    const existingFilesQuery = database?.prepare(
+      "SELECT FileLocation FROM Song",
+    );
+    const existingFiles = existingFilesQuery?.all() || [];
+
+    // Store existing file locations in a Set for quick lookup
+    existingFilePathsInDB = new Set(
+      existingFiles.map((row) => (row as any).FileLocation),
+    );
+
+    return { success: true, message: "Updated existing file paths!" };
+  } catch (error) {
+    console.error("ERROR: ", error);
+    return { success: false, message: "Error updating existing file paths!" };
+  }
+}
 
 export async function createDatabase() {
   try {
     const settingsData = await readSettings();
-    if(settingsData) {
-      const selectedDB = path.join(settingsData?.selectedDir, "music-db.sqlite");
+    if (settingsData) {
+      const selectedDB = path.join(
+        settingsData?.selectedDir,
+        "music-db.sqlite",
+      );
       database = (await getSqlite3(selectedDB)) as Database.Database;
       console.log("Connected to database: ", database);
       setupDatabase(database);
     }
+
+    const result = await updateExistingFilePaths();
+    if (result.success) {
+      console.log("TEST EXISTING FILE PATHS: ", existingFilePathsInDB);
+    }
+
     return { success: true, message: "Database created!" };
   } catch (error) {
     console.error("ERROR: ", error);
@@ -134,7 +166,10 @@ export async function detectSqliteFile() {
   const settingsData = await readSettings();
   console.log("SELECTED DIRECTORY PATH: ", settingsData?.selectedDir);
 
-  if (settingsData && (settingsData.selectedDir || settingsData.selectedDir !== "")) {
+  if (
+    settingsData &&
+    (settingsData.selectedDir || settingsData.selectedDir !== "")
+  ) {
     //check for .sqlite file
     const files = fs.readdirSync(settingsData?.selectedDir);
     console.log("FILES IN DIRECTORY PATH: ", files);
@@ -147,6 +182,11 @@ export async function detectSqliteFile() {
       database = (await getSqlite3(selectedDir)) as Database.Database;
 
       console.log("Connected to new database: ", database);
+
+      const result = await updateExistingFilePaths();
+      if (result.success) {
+        console.log("TEST EXISTING FILE PATHS: ", existingFilePathsInDB);
+      }
       return true;
     } else {
       console.log("No .sqlite file found in the directory.");
@@ -166,31 +206,28 @@ export async function insertSongFolder() {
     const settingsData = await readSettings();
 
     //specify song folder path and get all it's files
-    let songFolderPath = path.join(settingsData?.selectedDir || '', "Songs"); //TODO: review later
+    let songFolderPath = path.join(settingsData?.selectedDir || "", "Songs"); //TODO: review later
     const files = fs.readdirSync(songFolderPath); //change to song folder
-    
-    const existingFilePaths = getExistingFilePaths(); //TODO: make this global????
 
     let result;
 
     //iterate through all the files
     for (const file of files) {
-      result = await insertSong(songFolderPath, file, existingFilePaths);
+      result = await insertSong(songFolderPath, file);
     }
 
-    if(result?.success) {
+    if (result?.success) {
       return { success: true, message: "Files added to the database!" };
     } else {
       return { success: false, message: "Error adding files to the database!" };
     }
-    
   } catch (error) {
     console.error("Error adding files to the database:", error);
     return { success: false, message: "Error adding files to the database!" };
   }
 }
 
-export async function insertSong(songFolderPath: string, file: string, existingFilePaths: Set<any>) {
+export async function insertSong(songFolderPath: string, file: string) {
   try {
     //wait for db initialization or throw an error if db is not initialized
     await waitForDbInitialization();
@@ -234,15 +271,16 @@ export async function insertSong(songFolderPath: string, file: string, existingF
 
       const songDbFilePath = path.join("Songs/", file);
       //only insert into database if it does not exist
-      if (!existingFilePaths.has(songDbFilePath)) {
-        
+      if (!existingFilePathsInDB.has(songDbFilePath)) {
         console.log("Adding file to database: ", songDbFilePath);
+        existingFilePathsInDB.add(songDbFilePath);
         insert?.run(title, artist, duration, thumbnailPath, songDbFilePath);
+
+        console.log("TEST EXISTING FILE PATHS: ", existingFilePathsInDB);
       }
     }
 
     return { success: true, message: "Audio file added to the database!" };
-    
   } catch (error) {
     console.error("Error adding audio file to the database:", error);
     return { success: false, message: "Error audio file to the database!" };
@@ -257,10 +295,10 @@ export async function deleteSong(songID: number) {
     //read settings
     const settingsData = await readSettings();
 
-    if(settingsData) {
+    if (settingsData) {
       //delete song file and thumbnail
       const query =
-      "SELECT ThumbnailLocation, FileLocation FROM Song WHERE SongID = ?";
+        "SELECT ThumbnailLocation, FileLocation FROM Song WHERE SongID = ?";
       const songData = database?.prepare(query).get(songID) as songType;
 
       const songFileLocation = path.join(
@@ -279,6 +317,9 @@ export async function deleteSong(songID: number) {
       if (songThumbnailLocation !== "") {
         fs.unlinkSync(songThumbnailLocation);
       }
+
+      existingFilePathsInDB.delete(songData.FileLocation);
+      console.log("TEST EXISTING FILE PATHS: ", existingFilePathsInDB);
 
       //delete song from sqlite database
       const deleteStmt = database?.prepare("DELETE FROM Song WHERE SongID = ?");
