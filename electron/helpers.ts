@@ -39,6 +39,6 @@ export function getAllFilesInDirectory(dirPath: string): string[] {
   }
 
 export function isValidAudioExt(ext: string) {
-  const validExtensions = [".wav", ".mp3", ".opus"];
+  const validExtensions = [".wav", ".mp3", ".opus", ".m4a"];
   return validExtensions.includes(ext);
 }
