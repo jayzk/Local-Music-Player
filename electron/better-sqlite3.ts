@@ -47,6 +47,7 @@ function setupDatabase(database: Database.Database | null) {
       Title TEXT DEFAULT '',
       Artist TEXT DEFAULT '',
       Duration REAL DEFAULT 0,
+      CreationDate INTEGER DEFAULT -1,
       ThumbnailLocation TEXT DEFAULT '',
       FileLocation TEXT NOT NULL UNIQUE
     )
@@ -227,17 +228,26 @@ export async function insertSongFolder() {
   }
 }
 
+/**
+ * 
+ * @param songFolderPath - absolute path for the song folder 
+ * @param file - song file
+ * @returns 
+ */
 export async function insertSong(songFolderPath: string, file: string) {
   try {
     //wait for db initialization or throw an error if db is not initialized
     await waitForDbInitialization();
+
+    //TODO: delete later
+    console.log("TEST - Song folder abs path: ", songFolderPath);
 
     //get settings data
     const settingsData = await readSettings();
 
     //prepare insert statement
     const insert = database?.prepare(
-      "INSERT INTO Song (Title, Artist, Duration, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO Song (Title, Artist, Duration, CreationDate, ThumbnailLocation, FileLocation) VALUES (?, ?, ?, ?, ?, ?)",
     );
 
     const ext = path.extname(file);
@@ -247,10 +257,12 @@ export async function insertSong(songFolderPath: string, file: string) {
       const filePath = path.join(songFolderPath, file);
 
       //get metadata information of the file
+      const stats = fs.statSync(filePath);
       const metadata = await parseFile(filePath);
       const title = metadata.common.title || "";
       const artist = metadata.common.artist || "";
       const duration = metadata.format.duration || "";
+      const creationDate = stats.birthtime.getTime();
 
       //check if the thumbnail path exists or not
       let thumbnailPath;
@@ -274,7 +286,7 @@ export async function insertSong(songFolderPath: string, file: string) {
       if (!existingFilePathsInDB.has(songDbFilePath)) {
         console.log("Adding file to database: ", songDbFilePath);
         existingFilePathsInDB.add(songDbFilePath);
-        insert?.run(title, artist, duration, thumbnailPath, songDbFilePath);
+        insert?.run(title, artist, duration, creationDate, thumbnailPath, songDbFilePath);
 
         console.log("TEST EXISTING FILE PATHS: ", existingFilePathsInDB);
       }
