@@ -3,6 +3,7 @@ import { spawn } from "child_process";
 import * as path from "path";
 import { CheckBoxType } from "../public/types";
 import { writeToErrorFile } from "./helpers";
+import { insertSongFolder } from "./better-sqlite3";
 
 // import binaries
 export const FFMPEG_BINARY_PATH = require("ffmpeg-static"); //using import gives the wrong file path to the executable
@@ -17,6 +18,8 @@ const ProgressOutputTemplate = "download:[DOWNLOADING]-Downloading item %(info.p
 const defaultArgs = [
   "--ffmpeg-location", FFMPEG_BINARY_PATH, // Specify ffmpeg binary
   "--embed-metadata",       // get metadata from youtube URL
+  "--sleep-requests", "1.25",
+  "--sleep-interval", "5",
   "-f", "bestaudio",        // Download best quality audio
   "-o", SongOutputTemplate, // Specify output format of audio file  
 ];
@@ -48,6 +51,8 @@ export async function downloadVideo(ytURL: string, checkBoxes: CheckBoxType) {
     const additionalVideoArgs = [
       "-P", downloadPath, // Specify download path
       "--no-playlist",    // Don't download the playlist
+      "--print", "after_move:[FILENAME]-%(title)s-[%(id)s].%(ext)s",  // Testing
+      "--no-simulate", "--no-quiet",
       "-x", ytURL,        // extract audio from youtube url
     ];
 
@@ -68,9 +73,15 @@ export async function downloadVideo(ytURL: string, checkBoxes: CheckBoxType) {
         console.error(`stderr: ${data}`);
       });
 
-      child.on("close", (code) => {
+      child.on("close", async (code) => {
         if (code === 0) {
-          resolve({ success: true, message: "Youtube URL downloaded!" });
+          //update sqlite database
+          const result = await insertSongFolder();
+          if(result.success) {
+            resolve({ success: true, message: "Youtube URL downloaded!" });
+          } else {
+            reject(new Error(`Error inserting into sqlite database!`));
+          }
         } else {
           reject(new Error(`Child process exited with code ${code}`));
         }
@@ -161,17 +172,31 @@ export async function downloadPlaylist(event: Electron.IpcMainInvokeEvent, ytURL
 
       child.stderr.on("data", (data) => {
         console.error(`stderr: ${data}`);
-        if (currentURL) {
+        const output = data.toString();
+  
+        // ensure to not include warnings inside the list of missed URLs (they still download but in m4a format)
+        if (currentURL && output.includes("ERROR")) {
           listOfMissedURLs.push({"url": currentURL, "error": data});
           numOfMissedURLs++;
         }
       });
 
-      child.on("close", (code) => {
+      child.on("close", async (code) => {
+        //update sqlite database regardless of errors just in case as urls can still be downloaded
+        const result = await insertSongFolder();
+        
         if (code === 0) {
-          resolve({ success: true, message: "Youtube playlist downloaded!" });
+          if(result.success) {
+            resolve({ success: true, message: "Youtube playlist downloaded!" });
+          } else {
+            reject(new Error(`Error inserting into sqlite database!`));
+          }
         } else {
-          reject(new Error(`Child process exited with code ${code}`));
+          if(result.success) {
+            reject(new Error(`Child process exited with code ${code}`));
+          } else {
+            reject(new Error(`Error inserting into sqlite database!`));
+          }
         }
       });
     });

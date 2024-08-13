@@ -6,11 +6,13 @@ import { useToastContext } from "../../Contexts/ToastContext";
 import YTDownloadForm from "./YTDownloadForm";
 import useDownloadProgress from "../../Hooks/DownloadProgressHook";
 import { downloadYtAudio, downloadYtPlaylist } from "../../utils/IpcUtils";
+import { useSongListContext } from "../../Contexts/SongListContext";
 
 export default function AddMusicMainContainer() {
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
   const [isDownloadingPlaylist, setIsDownloadingPlaylist] = useState(false);
   const {downloadProgress, resetDownloadProgress} = useDownloadProgress();
+  const { updateSongList } = useSongListContext();
 
   const toast = useToastContext();
 
@@ -27,6 +29,8 @@ export default function AddMusicMainContainer() {
       if (result.success) {
         toast.success(result.message);
         setIsDownloadingSingle(false);
+        updateSongList();
+        
       } else {
         toast.error(result.message);
         setIsDownloadingSingle(false);
@@ -43,14 +47,19 @@ export default function AddMusicMainContainer() {
 
       const result = await downloadYtPlaylist(ytURL, checkedItems);
 
+      // update the song list regardless of errors as some urls could be downloaded
       if (result.success) {
         toast.success(result.message);
         setIsDownloadingPlaylist(false);
         resetDownloadProgress();
+
+        updateSongList();
       } else {
         toast.error(result.message);
         setIsDownloadingPlaylist(false);
         resetDownloadProgress();
+
+        updateSongList();
       }
     }
   };
