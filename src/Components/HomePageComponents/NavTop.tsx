@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSettingsContext } from "../../Contexts/SettingsContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
 import { useToastContext } from "../../Contexts/ToastContext";
-import { insertSongFolder, selectDirectory, updateSelectedDirSettings } from "../../utils/IpcUtils";
+import { insertSongFolder, selectDirectory, updateSelectedDirSettings, updateSongTable } from "../../utils/IpcUtils";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
@@ -33,6 +33,14 @@ export default function NavTop() {
     } else {
       toast.error(result.message);
     }
+
+    //TODO: keep this in case of any future changes to the song table
+    // const updateResult = await updateSongTable();
+    // if (updateResult.success) {
+    //   console.log("SONG TABLE HAS BEEN UPDATED");
+    // } else {
+    //   console.log("ERROR UPDATING SONG TABLE");
+    // }
   };
 
   //re-render when settingsData updates

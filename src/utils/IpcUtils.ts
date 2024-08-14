@@ -80,6 +80,16 @@ export async function fetchSongs() {
     return result;
 }
 
+/**
+ * TODO: keep this for now
+ * @description updates the song table if any changes are made in the future
+ */
+export async function updateSongTable() {
+  console.log("[DEBUG] updating song table");
+  const result = await window.ipcRenderer.invoke("update-song-table");
+  return result;
+}
+
 export async function appendFilePaths(selectedDir: string | undefined, thumbnailPath: string) {
     const result = await window.ipcRenderer.invoke(
         "append-filePaths",

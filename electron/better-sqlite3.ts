@@ -14,6 +14,7 @@ const root = path.join(__dirname, "..");
 const TAG = "[better-sqlite3]";
 let database: Database.Database | null;
 
+//stores existing files already in the current database (does not store absolute file paths, just relative to the Song folder)
 let existingFilePathsInDB: Set<any> = new Set();
 
 function waitForDbInitialization(maxRetries = 10, delay = 100): Promise<void> {
@@ -117,6 +118,53 @@ function getExistingFilePaths() {
   return existingFilePaths;
 }
 
+/**
+ * TODO: keep this for now
+ * @description updates the song table if any future changes are made (currently adding a new column "CreationDate")
+ */
+export async function updateSongTable() {
+  try {
+    await waitForDbInitialization();
+    const settingsData = await readSettings();
+
+    database?.exec(`
+      ALTER TABLE Song
+      ADD COLUMN CreationDate INTEGER
+    `);
+
+    //prepare insert statement
+    const updateCreationDate = database?.prepare(`
+      UPDATE Song
+      SET CreationDate = ?
+      WHERE SongID = ?
+    `);
+
+    // Fetch all existing file locations in the Song table
+    const getAllStmt = database?.prepare(
+      "SELECT * FROM Song",
+    );
+    const songs = getAllStmt?.all() as songType[];
+
+    if(songs && settingsData) {
+      songs.forEach((song) => {
+        //get absolute file path
+        const filePath = path.join(settingsData.selectedDir, song.FileLocation);
+
+        //get metadata information of the file
+        const stats = fs.statSync(filePath);
+        const creationDate = stats.birthtime.getTime();
+
+        //update creation date
+        updateCreationDate?.run(creationDate, song.SongID);
+      });
+    }
+  
+    return { success: true, message: "Updated song table!" };
+  } catch (error) {
+    return { success: false, message: "Error updating song table!" };
+  }
+}
+
 async function updateExistingFilePaths() {
   try {
     await waitForDbInitialization();
@@ -206,7 +254,7 @@ export async function insertSongFolder() {
     //get settings data
     const settingsData = await readSettings();
 
-    //specify song folder path and get all it's files
+    //specify song folder absolute path and get all it's files
     let songFolderPath = path.join(settingsData?.selectedDir || "", "Songs"); //TODO: review later
     const files = fs.readdirSync(songFolderPath); //change to song folder
 
@@ -253,7 +301,7 @@ export async function insertSong(songFolderPath: string, file: string) {
     const ext = path.extname(file);
 
     if (isValidAudioExt(ext) && settingsData) {
-      //get song file path
+      //get song absolute file path
       const filePath = path.join(songFolderPath, file);
 
       //get metadata information of the file

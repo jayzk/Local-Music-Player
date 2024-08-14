@@ -8,7 +8,7 @@ import {
 import { fileURLToPath } from "node:url";
 
 import * as path from "path";
-import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchSongs, insertSongFolder } from "./better-sqlite3";
+import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
 import {
   readSettings,
   writeSettings,
@@ -254,6 +254,15 @@ ipcMain.handle("delete-song", async (_event, songID: number) => {
   const result = await deleteSong(songID);
   return result;
 });
+
+/**
+ * TODO: keep this for now
+ * @description updates the song table if any future changes are made
+ */
+ipcMain.handle("update-song-table", async () => {
+  const result = await updateSongTable();
+  return result;
+})
 
 ipcMain.handle("append-filePaths", async (_event, path1, path2) => {
   try {

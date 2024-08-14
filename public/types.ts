@@ -11,6 +11,7 @@ export type songType = {
   Title: string;
   Artist: string;
   Duration: number;
+  CreationDate: number;
   ThumbnailLocation: string;
   FileLocation: string;
 }
