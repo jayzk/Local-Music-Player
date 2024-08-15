@@ -13,7 +13,10 @@ export default function BottomPlayer() {
 
     console.log("BottomPlayer -> Now Playing: ", fileUrl);
 
-    setUrl(fileUrl);
+    if(fileUrl)
+      setUrl(fileUrl);
+    else 
+      setUrl("");
   }, [settingsData?.currentlyPlaying]); //re-render everytime currentlyPlaying in settings changes
 
   return (
