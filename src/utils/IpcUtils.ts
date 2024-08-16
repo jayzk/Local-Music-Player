@@ -100,6 +100,12 @@ export async function fetchCurrentRowNum(songID: number) {
   return result;
 }
 
+export async function fetchTotalNumOfSongs() {
+  const result = await window.ipcRenderer.invoke("fetch-total-numOfSongs");
+  console.log("[DEBUG] fetching total number of songs in table");
+  return result;
+}
+
 /**
  * TODO: keep this for now
  * @description updates the song table if any changes are made in the future

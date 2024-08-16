@@ -8,7 +8,7 @@ import {
 import { fileURLToPath } from "node:url";
 
 import * as path from "path";
-import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchCurrentRowNum, fetchSongByRowNum, fetchSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
+import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchCurrentRowNum, fetchSongByRowNum, fetchSongs, fetchTotalNumOfSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
 import {
   readSettings,
   writeSettings,
@@ -272,6 +272,11 @@ ipcMain.handle("fetch-song-by-rownum", async (_event, rowNum: number) => {
 
 ipcMain.handle("fetch-current-rownum", async (_event, songID: number) => {
   const result = await fetchCurrentRowNum(songID);
+  return result;
+})
+
+ipcMain.handle("fetch-total-numOfSongs", async (_event) => {
+  const result = await fetchTotalNumOfSongs();
   return result;
 })
 

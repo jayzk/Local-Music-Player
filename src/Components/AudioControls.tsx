@@ -16,6 +16,7 @@ import {
   appendFilePaths,
   fetchCurrentRowNum,
   fetchSongByRowNum,
+  fetchTotalNumOfSongs,
   updateCurrentlyPlayingSettings,
   updateVolumeSettings,
 } from "../utils/IpcUtils";
@@ -107,13 +108,26 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         settingsData.currentlyPlayingID,
       );
 
-      if (currentRowNumResult.success) {
-        //convert it to a number
+      const totalResult = await fetchTotalNumOfSongs();
+
+      if (currentRowNumResult.success && totalResult.success) {
+        //get total number of songs
+        const numOfSongs = totalResult.data.Total;
+        console.log("Total number of songs: ", numOfSongs);
+
+
+        //get current row number in table
         const currentRowNum = Number(currentRowNumResult.data.RowNum);
         console.log("Fetching current row of current song: ", currentRowNum);
 
         //fetch song in the next row
-        const songResult = await fetchSongByRowNum(currentRowNum + 1);
+        let songResult;
+        if(currentRowNum === numOfSongs) { //loop back the beginning of the list
+          songResult = await fetchSongByRowNum(1);
+        } else {
+          songResult = await fetchSongByRowNum(currentRowNum + 1);
+        }
+        
         let song: songType;
         if (songResult.success) {
           console.log("Fetched song: ", songResult.data);

@@ -455,6 +455,20 @@ export async function fetchCurrentRowNum(songID: number) {
   }
 }
 
+export async function fetchTotalNumOfSongs() {
+  try {
+    await waitForDbInitialization();
+
+    const query = database?.prepare(`SELECT COUNT(*) AS Total FROM Song`);
+    const totalNumOfSongs = query?.get();
+
+    return { success: true, data: totalNumOfSongs };
+  } catch (error) {
+    console.error("Error fetching number of rows in the song table:", error);
+    return { success: false, message: "Error fetching total number of rows/songs" };
+  }
+}
+
 export function closeDatabase() {
   if (database) {
     console.log("closing database connection!");
