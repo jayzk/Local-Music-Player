@@ -4,6 +4,7 @@ export type settingsType = {
     selectedDir: string;
     volume: number;
     currentlyPlaying: string;
+    currentlyPlayingID: number;
   } | null;
 
 export type songType = {

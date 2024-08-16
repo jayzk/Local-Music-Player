@@ -5,7 +5,10 @@ import LoadThumbnail from "./LoadThumbnail";
 
 import { useSettingsContext } from "../../Contexts/SettingsContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
-import { appendFilePaths, updateCurrentlyPlayingSettings } from "../../utils/IpcUtils";
+import {
+  appendFilePaths,
+  updateCurrentlyPlayingSettings,
+} from "../../utils/IpcUtils";
 
 export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
@@ -14,11 +17,14 @@ export default function () {
   const { songs } = useSongListContext();
   const { settingsData, updateSettings } = useSettingsContext();
 
-  const handleRowClick = async (fileLocation: string) => {
+  const handleRowClick = async (fileLocation: string, songID: number) => {
     if (fileLocation) {
-      const absolutePath = await appendFilePaths(settingsData?.selectedDir, fileLocation);
+      const absolutePath = await appendFilePaths(
+        settingsData?.selectedDir,
+        fileLocation,
+      );
 
-      await updateCurrentlyPlayingSettings(absolutePath);
+      await updateCurrentlyPlayingSettings(absolutePath, songID);
 
       //update settings data
       updateSettings();
@@ -81,14 +87,13 @@ export default function () {
               <tr
                 key={song.SongID}
                 className="group cursor-pointer hover:bg-slate-600"
-                onClick={() => handleRowClick(song.FileLocation)}
+                onClick={() => handleRowClick(song.FileLocation, song.SongID)}
               >
                 <td className="w-10 lg:w-16 xl:w-24">{index + 1}</td>
                 <td className="w-64 lg:w-80 xl:w-96">
                   <div className="flex items-center">
                     <LoadThumbnail thumbnailPath={song.ThumbnailLocation} />
                     <p className="truncate">{song.Title}</p>
-                    
                   </div>
                 </td>
                 <td className="w-24 lg:w-40 xl:w-64">{song.Artist}</td>

@@ -140,12 +140,10 @@ export async function updateSongTable() {
     `);
 
     // Fetch all existing file locations in the Song table
-    const getAllStmt = database?.prepare(
-      "SELECT * FROM Song",
-    );
+    const getAllStmt = database?.prepare("SELECT * FROM Song");
     const songs = getAllStmt?.all() as songType[];
 
-    if(songs && settingsData) {
+    if (songs && settingsData) {
       songs.forEach((song) => {
         //get absolute file path
         const filePath = path.join(settingsData.selectedDir, song.FileLocation);
@@ -158,7 +156,7 @@ export async function updateSongTable() {
         updateCreationDate?.run(creationDate, song.SongID);
       });
     }
-  
+
     return { success: true, message: "Updated song table!" };
   } catch (error) {
     return { success: false, message: "Error updating song table!" };
@@ -277,10 +275,10 @@ export async function insertSongFolder() {
 }
 
 /**
- * 
- * @param songFolderPath - absolute path for the song folder 
+ *
+ * @param songFolderPath - absolute path for the song folder
  * @param file - song file
- * @returns 
+ * @returns
  */
 export async function insertSong(songFolderPath: string, file: string) {
   try {
@@ -334,7 +332,14 @@ export async function insertSong(songFolderPath: string, file: string) {
       if (!existingFilePathsInDB.has(songDbFilePath)) {
         console.log("Adding file to database: ", songDbFilePath);
         existingFilePathsInDB.add(songDbFilePath);
-        insert?.run(title, artist, duration, creationDate, thumbnailPath, songDbFilePath);
+        insert?.run(
+          title,
+          artist,
+          duration,
+          creationDate,
+          thumbnailPath,
+          songDbFilePath,
+        );
 
         console.log("TEST EXISTING FILE PATHS: ", existingFilePathsInDB);
       }
@@ -386,7 +391,7 @@ export async function deleteSong(songID: number) {
       deleteStmt?.run(songID);
 
       //reset currentlyPlaying property in settings
-      updateCurrentlyPlaying(settingsData, "");
+      updateCurrentlyPlaying(settingsData, "", 0);
     }
 
     return { success: true, message: "Delete successful!" };
@@ -406,6 +411,47 @@ export async function fetchSongs() {
   } catch (error) {
     console.error("Error fetching from song table:", error);
     return { success: false, message: "Error fetching songs" };
+  }
+}
+
+export async function fetchSongByRowNum(rowNum: number) {
+  try {
+    await waitForDbInitialization();
+
+    const query = database?.prepare(
+      `SELECT * FROM
+        (SELECT *, 
+          ROW_NUMBER() OVER() AS RowNum
+          FROM Song)
+        WHERE RowNum = ?`,
+    );
+
+    const songData = query?.get(rowNum) as songType;
+    return { success: true, data: songData };
+  } catch (error) {
+    console.error("Error fetching from song table:", error);
+    return { success: false, message: "Error fetching song" };
+  }
+}
+
+export async function fetchCurrentRowNum(songID: number) {
+  try {
+    await waitForDbInitialization();
+
+    const query = database?.prepare(
+      `SELECT RowNum FROM
+        (SELECT *, 
+          ROW_NUMBER() OVER() AS RowNum
+          FROM Song)
+        WHERE SongID = ?`,
+    );
+
+    const rowNum = query?.get(songID);
+
+    return { success: true, data: rowNum };
+  } catch (error) {
+    console.error("Error fetching row number from song table:", error);
+    return { success: false, message: "Error fetching current row number" };
   }
 }
 

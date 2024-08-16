@@ -8,7 +8,7 @@ import {
 import { fileURLToPath } from "node:url";
 
 import * as path from "path";
-import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
+import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchCurrentRowNum, fetchSongByRowNum, fetchSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
 import {
   readSettings,
   writeSettings,
@@ -222,9 +222,10 @@ ipcMain.handle("update-directory-settings", async (_event, newDir: string) => {
 
 ipcMain.handle(
   "update-currentlyPlaying-settings",
-  async (_event, newAudioFile: string) => {
+  async (_event, newAudioFile: string, newAudioFileID: number) => {
     const settingsData = await readSettings();
-    await updateCurrentlyPlaying(settingsData, newAudioFile);
+    const result = await updateCurrentlyPlaying(settingsData, newAudioFile, newAudioFileID);
+    return result;
   },
 );
 
@@ -261,6 +262,16 @@ ipcMain.handle("delete-song", async (_event, songID: number) => {
  */
 ipcMain.handle("update-song-table", async () => {
   const result = await updateSongTable();
+  return result;
+});
+
+ipcMain.handle("fetch-song-by-rownum", async (_event, rowNum: number) => {
+  const result = await fetchSongByRowNum(rowNum);
+  return result;
+});
+
+ipcMain.handle("fetch-current-rownum", async (_event, songID: number) => {
+  const result = await fetchCurrentRowNum(songID);
   return result;
 })
 

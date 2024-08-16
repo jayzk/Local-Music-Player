@@ -15,21 +15,23 @@ export async function updateVolumeSettings(newVol: number) {
 
 //TODO: make a return
 export async function updateSelectedDirSettings(newDir: string) {
-    await window.ipcRenderer.invoke(
-        "update-directory-settings",
-        newDir,
-      );
+  await window.ipcRenderer.invoke("update-directory-settings", newDir);
 
-      console.log("[DEBUG] current selected directory in settings: ", newDir);
+  console.log("[DEBUG] current selected directory in settings: ", newDir);
 }
 
-export async function updateCurrentlyPlayingSettings(filePath: string) {
-    await window.ipcRenderer.invoke(
-        "update-currentlyPlaying-settings",
-        filePath,
-      );
+export async function updateCurrentlyPlayingSettings(
+  filePath: string,
+  songID: number,
+) {
+  const result = await window.ipcRenderer.invoke(
+    "update-currentlyPlaying-settings",
+    filePath,
+    songID,
+  );
 
-      console.log("[DEBUG] currently playing in settings: ", filePath);
+  console.log("[DEBUG] currently playing in settings: ", filePath);
+  return result;
 }
 
 export async function downloadYtAudio(
@@ -49,7 +51,7 @@ export async function downloadYtPlaylist(
   ytURL: string,
   checkedItems: CheckBoxType,
 ) {
-    console.log("[DEBUG] Downloading yt playlist");
+  console.log("[DEBUG] Downloading yt playlist");
   const result = await window.ipcRenderer.invoke(
     "download-yt-playlist",
     ytURL,
@@ -60,24 +62,42 @@ export async function downloadYtPlaylist(
 }
 
 export async function deleteSong(songID: number) {
-    const result = await window.ipcRenderer.invoke("delete-song", songID);
-    return result;
+  const result = await window.ipcRenderer.invoke("delete-song", songID);
+  return result;
 }
 
 export async function insertSongFolder() {
-    const result = await window.ipcRenderer.invoke("add-folder-files");
-    return result;
+  const result = await window.ipcRenderer.invoke("add-folder-files");
+  return result;
 }
 
 export async function createDatabase() {
-    const result = await window.ipcRenderer.invoke("create-database");
-    return result;
+  const result = await window.ipcRenderer.invoke("create-database");
+  return result;
 }
 
 export async function fetchSongs() {
-    console.log("[DEBUG] fetching songs from song table");
-    const result = await window.ipcRenderer.invoke("fetch-songs");
-    return result;
+  console.log("[DEBUG] fetching songs from song table");
+  const result = await window.ipcRenderer.invoke("fetch-songs");
+  return result;
+}
+
+export async function fetchSongByRowNum(rowNum: number) {
+  console.log("[DEBUG] fetching song at row number: ", rowNum);
+  const result = await window.ipcRenderer.invoke(
+    "fetch-song-by-rownum",
+    rowNum,
+  );
+  return result;
+}
+
+export async function fetchCurrentRowNum(songID: number) {
+  console.log("[DEBUG] fetching current songID's ", songID, " row number.");
+  const result = await window.ipcRenderer.invoke(
+    "fetch-current-rownum",
+    songID,
+  );
+  return result;
 }
 
 /**
@@ -90,19 +110,22 @@ export async function updateSongTable() {
   return result;
 }
 
-export async function appendFilePaths(selectedDir: string | undefined, thumbnailPath: string) {
-    const result = await window.ipcRenderer.invoke(
-        "append-filePaths",
-        selectedDir,
-        thumbnailPath,
-      );
+export async function appendFilePaths(
+  selectedDir: string | undefined,
+  thumbnailPath: string,
+) {
+  const result = await window.ipcRenderer.invoke(
+    "append-filePaths",
+    selectedDir,
+    thumbnailPath,
+  );
 
-    return result;
+  return result;
 }
 
 export async function readSettingsData() {
-    const result = await window.ipcRenderer.invoke("read-settings-data");
-    return result;
+  const result = await window.ipcRenderer.invoke("read-settings-data");
+  return result;
 }
 
 export async function selectDirectory() {

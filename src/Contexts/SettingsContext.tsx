@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { settingsType } from "../../public/types.ts";
-import { readSettingsData } from "../utils/IpcUtils.ts";
+import { readSettingsData } from "../utils/IpcUtils";
 
 type SettingsContextType = {
   settingsData: settingsType;

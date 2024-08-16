@@ -14,6 +14,7 @@ const defaultSettings: settingsType = {
   selectedDir: "",
   volume: 0.5,
   currentlyPlaying: "",
+  currentlyPlayingID: 0,
 };
 
 export function readSettings(): Promise<settingsType> {
@@ -60,7 +61,10 @@ export function writeSettings(data: string): Promise<void> {
   });
 }
 
-export function updateVolume(settings: settingsType, newVol: Number): Promise<void> {
+export function updateVolume(
+  settings: settingsType,
+  newVol: Number,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       //update new volume
@@ -106,11 +110,16 @@ export function updateSelectedDir(
 export function updateCurrentlyPlaying(
   settings: settingsType,
   newAudioFile: string,
-): Promise<void> {
+  newAudioFileID: number,
+): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
       //update to new directory
-      const newData = { ...settings, currentlyPlaying: newAudioFile };
+      const newData = {
+        ...settings,
+        currentlyPlaying: newAudioFile,
+        currentlyPlayingID: newAudioFileID,
+      };
 
       //write new settings to file
       writeSettings(JSON.stringify(newData, null, 2));
@@ -119,9 +128,12 @@ export function updateCurrentlyPlaying(
       console.log(divider);
       console.log("Updated selected directory in settings: ", newAudioFile);
       console.log(divider);
-      resolve();
+      resolve({
+        success: true,
+        message: "Successfully updated currentlyPlaying in settings",
+      });
     } catch (error) {
-      reject(error);
+      reject({ success: false, message: error });
     }
   });
 }

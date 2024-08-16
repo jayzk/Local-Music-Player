@@ -9,10 +9,17 @@ import {
   SpeakerXMarkIcon,
 } from "@heroicons/react/20/solid";
 import Shuffle from "../../public/additional-icons/shuffle.tsx";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useSettingsContext } from "../Contexts/SettingsContext.tsx";
-import { updateVolumeSettings } from "../utils/IpcUtils.ts";
+import {
+  appendFilePaths,
+  fetchCurrentRowNum,
+  fetchSongByRowNum,
+  updateCurrentlyPlayingSettings,
+  updateVolumeSettings,
+} from "../utils/IpcUtils";
+import { songType } from "../../public/types.ts";
 
 interface AudioControlsProps {
   fileUrl: string;
@@ -25,7 +32,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [currentVol, setCurrentVol] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
-  const { settingsData } = useSettingsContext();
+  const { settingsData, updateSettings } = useSettingsContext();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
@@ -79,6 +86,50 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       };
     }
   }, [fileUrl]);
+
+  useEffect(() => {
+    if (currentTime == duration && duration != 0 && settingsData) {
+      console.log("Audio is done!");
+      playNextTrack();
+    }
+  }, [currentTime]);
+
+  async function playNextTrack() {
+    if (settingsData) {
+      //get current playing song's row number in the song table
+      const currentRowNumResult = await fetchCurrentRowNum(
+        settingsData.currentlyPlayingID,
+      );
+
+      if (currentRowNumResult.success) {
+        //convert it to a number
+        const currentRowNum = Number(currentRowNumResult.data.RowNum);
+        console.log("Fetching current row of current song: ", currentRowNum);
+
+        //fetch song in the next row
+        const songResult = await fetchSongByRowNum(currentRowNum + 1);
+        let song: songType;
+        if (songResult.success) {
+          console.log("Fetched song: ", songResult.data);
+          song = songResult.data;
+
+          //get the absolute file path and change what is being played
+          const absolutePath = await appendFilePaths(
+            settingsData.selectedDir,
+            song.FileLocation,
+          );
+          const settingResult = await updateCurrentlyPlayingSettings(
+            absolutePath,
+            song.SongID,
+          );
+
+          if (settingResult.success) {
+            updateSettings();
+          }
+        }
+      }
+    }
+  }
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
