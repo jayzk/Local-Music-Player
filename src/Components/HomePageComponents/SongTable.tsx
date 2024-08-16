@@ -86,7 +86,7 @@ export default function () {
             {songs.map((song, index) => (
               <tr
                 key={song.SongID}
-                className="group cursor-pointer hover:bg-slate-600"
+                className={`group cursor-pointer ${settingsData?.currentlyPlayingID === song.SongID ? "bg-slate-600" : ""} hover:bg-slate-600`}
                 onClick={() => handleRowClick(song.FileLocation, song.SongID)}
               >
                 <td className="w-10 lg:w-16 xl:w-24">{index + 1}</td>
