@@ -56,8 +56,14 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     console.log("Running time updates");
     const audio = audioRef.current;
 
-    //reset current time, duration and is playing state
-    setIsPlaying(false);
+    //if playing state is still true, continue to play audio. If not pause
+    if(isPlaying === true) {
+      audio?.play();
+    } else {
+      setIsPlaying(false);
+    }
+
+    //reset current time and duration
     setCurrentTime(0);
     setDuration(0);
 
