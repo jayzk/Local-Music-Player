@@ -21,7 +21,7 @@ import {
   updateVolumeSettings,
 } from "../utils/IpcUtils";
 import { songType } from "../../public/types.ts";
-import { getRandomInt } from "../utils/helpers.ts";
+import { formatTime, getRandomInt, sleep } from "../utils/helpers.ts";
 
 interface AudioControlsProps {
   fileUrl: string;
@@ -75,7 +75,6 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       const updateCurrentTime = () => {
         //continously update the slider as the audio plays
         setCurrentTime(audio.currentTime);
-        console.log("Current audio time: ", audio.currentTime); //TODO: remove this later
       };
 
       const updateDuration = () => {
@@ -97,12 +96,12 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     }
   }, [fileUrl]);
 
+  //monitor if song is done playing
   useEffect(() => {
-    //TODO: BUG -> use proper formatted time to compare, some files won't work
-    console.log("TEST CurrentTime: ", currentTime);
-    console.log("TEST Duration: ", duration);
+    const formattedCurrentTime = formatTime(currentTime);
+    const formattedDuration = formatTime(duration);
 
-    if (currentTime == duration && duration != 0 && settingsData) {
+    if ((formattedCurrentTime === formattedDuration) && duration != 0 && settingsData) {
       console.log("Audio is done!");
 
       if (isLooping) {
@@ -201,6 +200,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         console.log("Fetching current row of current song: ", currentRowNum);
 
         //fetch song in the next row
+        await sleep(1000);
         if (currentRowNum === numOfSongs) {
           //loop back the beginning of the list
           playSong(1);
@@ -210,12 +210,6 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
       }
     }
   }
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
 
   const handlePlayPause = () => {
     const audio = audioRef.current;
