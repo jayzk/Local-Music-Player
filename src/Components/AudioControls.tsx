@@ -32,6 +32,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [duration, setDuration] = useState(0);
   const [currentVol, setCurrentVol] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isLooping, setIsLooping] = useState(false);
 
   const { settingsData, updateSettings } = useSettingsContext();
 
@@ -58,7 +59,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     const audio = audioRef.current;
 
     //if playing state is still true, continue to play audio. If not pause
-    if(isPlaying === true) {
+    if (isPlaying === true) {
       audio?.play();
     } else {
       setIsPlaying(false);
@@ -97,7 +98,22 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   useEffect(() => {
     if (currentTime == duration && duration != 0 && settingsData) {
       console.log("Audio is done!");
-      playNextTrack();
+
+      if (isLooping) {
+        const audio = audioRef.current;
+        if (audio) {
+          audio.currentTime = 0;
+          setCurrentTime(0);
+
+          if (isPlaying === true) {
+            audio?.play();
+          } else {
+            setIsPlaying(false);
+          }
+        }
+      } else {
+        playNextTrack();
+      }
     }
   }, [currentTime]);
 
@@ -115,19 +131,19 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         const numOfSongs = totalResult.data.Total;
         console.log("Total number of songs: ", numOfSongs);
 
-
         //get current row number in table
         const currentRowNum = Number(currentRowNumResult.data.RowNum);
         console.log("Fetching current row of current song: ", currentRowNum);
 
         //fetch song in the next row
         let songResult;
-        if(currentRowNum === numOfSongs) { //loop back the beginning of the list
+        if (currentRowNum === numOfSongs) {
+          //loop back the beginning of the list
           songResult = await fetchSongByRowNum(1);
         } else {
           songResult = await fetchSongByRowNum(currentRowNum + 1);
         }
-        
+
         let song: songType;
         if (songResult.success) {
           console.log("Fetched song: ", songResult.data);
@@ -228,12 +244,13 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
 
         //fetch song in the next row
         let songResult;
-        if(currentRowNum === 1) { //loop back the beginning of the list
+        if (currentRowNum === 1) {
+          //loop back the beginning of the list
           songResult = await fetchSongByRowNum(1);
         } else {
           songResult = await fetchSongByRowNum(currentRowNum - 1);
         }
-        
+
         let song: songType;
         if (songResult.success) {
           console.log("Fetched song: ", songResult.data);
@@ -255,7 +272,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         }
       }
     }
-  }
+  };
 
   const handleForwards = async () => {
     if (settingsData) {
@@ -277,12 +294,13 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
 
         //fetch song in the next row
         let songResult;
-        if(currentRowNum === numOfSongs) { //loop back the beginning of the list
+        if (currentRowNum === numOfSongs) {
+          //loop back the beginning of the list
           songResult = await fetchSongByRowNum(numOfSongs);
         } else {
           songResult = await fetchSongByRowNum(currentRowNum + 1);
         }
-        
+
         let song: songType;
         if (songResult.success) {
           console.log("Fetched song: ", songResult.data);
@@ -304,7 +322,12 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         }
       }
     }
-  }
+  };
+
+  const handleLoop = () => {
+    console.log("Loop toggled");
+    setIsLooping((prev) => !prev);
+  };
 
   return (
     <div className="flex w-full flex-col items-center">
@@ -314,8 +337,10 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
           <Shuffle />
         </Button>
 
-        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
-          onClick={handleBackwards}>
+        <Button
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
+          onClick={handleBackwards}
+        >
           <BackwardIcon className="size-6" />
         </Button>
 
@@ -330,13 +355,26 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
           )}
         </Button>
 
-        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
-          onClick={handleForwards}>
+        <Button
+          className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
+          onClick={handleForwards}
+        >
           <ForwardIcon className="size-6" />
         </Button>
 
-        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
-          <ArrowPathRoundedSquareIcon className="size-6" />
+        <Button
+          className="relative inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold transition hover:scale-110 data-[hover]:bg-gray-600"
+          onClick={handleLoop}
+        >
+          <ArrowPathRoundedSquareIcon className="size-6 text-white" />
+          {isLooping ? (
+            <span className="absolute right-2 top-2 flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+            </span>
+          ) : (
+            <></>
+          )}
         </Button>
 
         <div className="absolute right-5 mr-2 flex space-x-2">
