@@ -214,6 +214,98 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     }
   };
 
+  const handleBackwards = async () => {
+    if (settingsData) {
+      //get current playing song's row number in the song table
+      const currentRowNumResult = await fetchCurrentRowNum(
+        settingsData.currentlyPlayingID,
+      );
+
+      if (currentRowNumResult.success) {
+        //get current row number in table
+        const currentRowNum = Number(currentRowNumResult.data.RowNum);
+        console.log("Fetching current row of current song: ", currentRowNum);
+
+        //fetch song in the next row
+        let songResult;
+        if(currentRowNum === 1) { //loop back the beginning of the list
+          songResult = await fetchSongByRowNum(1);
+        } else {
+          songResult = await fetchSongByRowNum(currentRowNum - 1);
+        }
+        
+        let song: songType;
+        if (songResult.success) {
+          console.log("Fetched song: ", songResult.data);
+          song = songResult.data;
+
+          //get the absolute file path and change what is being played
+          const absolutePath = await appendFilePaths(
+            settingsData.selectedDir,
+            song.FileLocation,
+          );
+          const settingResult = await updateCurrentlyPlayingSettings(
+            absolutePath,
+            song.SongID,
+          );
+
+          if (settingResult.success) {
+            updateSettings();
+          }
+        }
+      }
+    }
+  }
+
+  const handleForwards = async () => {
+    if (settingsData) {
+      //get current playing song's row number in the song table
+      const currentRowNumResult = await fetchCurrentRowNum(
+        settingsData.currentlyPlayingID,
+      );
+
+      const totalResult = await fetchTotalNumOfSongs();
+
+      if (currentRowNumResult.success && totalResult.success) {
+        //get total number of songs
+        const numOfSongs = totalResult.data.Total;
+        console.log("Total number of songs: ", numOfSongs);
+
+        //get current row number in table
+        const currentRowNum = Number(currentRowNumResult.data.RowNum);
+        console.log("Fetching current row of current song: ", currentRowNum);
+
+        //fetch song in the next row
+        let songResult;
+        if(currentRowNum === numOfSongs) { //loop back the beginning of the list
+          songResult = await fetchSongByRowNum(numOfSongs);
+        } else {
+          songResult = await fetchSongByRowNum(currentRowNum + 1);
+        }
+        
+        let song: songType;
+        if (songResult.success) {
+          console.log("Fetched song: ", songResult.data);
+          song = songResult.data;
+
+          //get the absolute file path and change what is being played
+          const absolutePath = await appendFilePaths(
+            settingsData.selectedDir,
+            song.FileLocation,
+          );
+          const settingResult = await updateCurrentlyPlayingSettings(
+            absolutePath,
+            song.SongID,
+          );
+
+          if (settingResult.success) {
+            updateSettings();
+          }
+        }
+      }
+    }
+  }
+
   return (
     <div className="flex w-full flex-col items-center">
       <audio ref={audioRef} src={fileUrl} preload="metadata"></audio>
@@ -222,7 +314,8 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
           <Shuffle />
         </Button>
 
-        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
+        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
+          onClick={handleBackwards}>
           <BackwardIcon className="size-6" />
         </Button>
 
@@ -237,7 +330,8 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
           )}
         </Button>
 
-        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600">
+        <Button className="inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600"
+          onClick={handleForwards}>
           <ForwardIcon className="size-6" />
         </Button>
 
