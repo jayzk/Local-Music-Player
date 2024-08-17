@@ -21,6 +21,7 @@ import {
   updateVolumeSettings,
 } from "../utils/IpcUtils";
 import { songType } from "../../public/types.ts";
+import { getRandomInt } from "../utils/helpers.ts";
 
 interface AudioControlsProps {
   fileUrl: string;
@@ -33,6 +34,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [currentVol, setCurrentVol] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
+  const [isRandomized, setIsRandomized] = useState(false);
 
   const { settingsData, updateSettings } = useSettingsContext();
 
@@ -96,6 +98,10 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   }, [fileUrl]);
 
   useEffect(() => {
+    //TODO: BUG -> use proper formatted time to compare, some files won't work
+    console.log("TEST CurrentTime: ", currentTime);
+    console.log("TEST Duration: ", duration);
+
     if (currentTime == duration && duration != 0 && settingsData) {
       console.log("Audio is done!");
 
@@ -111,11 +117,70 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
             setIsPlaying(false);
           }
         }
+      } else if (isRandomized) {
+        playRandom();
       } else {
         playNextTrack();
       }
     }
   }, [currentTime]);
+
+  async function playSong(rowNum: number) {
+    //fetch song in the next row
+    const songResult = await fetchSongByRowNum(rowNum);
+
+    //could be it's own function
+    let song: songType;
+    if (songResult.success && settingsData) {
+      console.log("Fetched song: ", songResult.data);
+      song = songResult.data;
+
+      //get the absolute file path and change what is being played
+      const absolutePath = await appendFilePaths(
+        settingsData.selectedDir,
+        song.FileLocation,
+      );
+      const settingResult = await updateCurrentlyPlayingSettings(
+        absolutePath,
+        song.SongID,
+      );
+
+      if (settingResult.success) {
+        updateSettings();
+      }
+    }
+  }
+
+  async function playRandom() {
+    if (settingsData) {
+      //get current playing song's row number in the song table
+      const currentRowNumResult = await fetchCurrentRowNum(
+        settingsData.currentlyPlayingID,
+      );
+
+      const totalResult = await fetchTotalNumOfSongs();
+
+      if (currentRowNumResult.success && totalResult.success) {
+        //get total number of songs
+        const numOfSongs = totalResult.data.Total;
+        console.log("Total number of songs: ", numOfSongs);
+
+        //get current row number in table
+        const currentRowNum = Number(currentRowNumResult.data.RowNum);
+        console.log("Fetching current row of current song: ", currentRowNum);
+
+        //get a random number from 1 - (the total number of songs)
+        let randomNum = getRandomInt(1, numOfSongs);
+
+        //ensure we don't play the current song again
+        while (currentRowNum === randomNum) {
+          randomNum = getRandomInt(1, numOfSongs);
+        }
+
+        playSong(randomNum);
+      }
+    }
+  }
 
   async function playNextTrack() {
     if (settingsData) {
@@ -136,32 +201,11 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         console.log("Fetching current row of current song: ", currentRowNum);
 
         //fetch song in the next row
-        let songResult;
         if (currentRowNum === numOfSongs) {
           //loop back the beginning of the list
-          songResult = await fetchSongByRowNum(1);
+          playSong(1);
         } else {
-          songResult = await fetchSongByRowNum(currentRowNum + 1);
-        }
-
-        let song: songType;
-        if (songResult.success) {
-          console.log("Fetched song: ", songResult.data);
-          song = songResult.data;
-
-          //get the absolute file path and change what is being played
-          const absolutePath = await appendFilePaths(
-            settingsData.selectedDir,
-            song.FileLocation,
-          );
-          const settingResult = await updateCurrentlyPlayingSettings(
-            absolutePath,
-            song.SongID,
-          );
-
-          if (settingResult.success) {
-            updateSettings();
-          }
+          playSong(currentRowNum + 1);
         }
       }
     }
@@ -242,33 +286,11 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         const currentRowNum = Number(currentRowNumResult.data.RowNum);
         console.log("Fetching current row of current song: ", currentRowNum);
 
-        //fetch song in the next row
-        let songResult;
+        //get previous song
         if (currentRowNum === 1) {
-          //loop back the beginning of the list
-          songResult = await fetchSongByRowNum(1);
+          playSong(1);
         } else {
-          songResult = await fetchSongByRowNum(currentRowNum - 1);
-        }
-
-        let song: songType;
-        if (songResult.success) {
-          console.log("Fetched song: ", songResult.data);
-          song = songResult.data;
-
-          //get the absolute file path and change what is being played
-          const absolutePath = await appendFilePaths(
-            settingsData.selectedDir,
-            song.FileLocation,
-          );
-          const settingResult = await updateCurrentlyPlayingSettings(
-            absolutePath,
-            song.SongID,
-          );
-
-          if (settingResult.success) {
-            updateSettings();
-          }
+          playSong(currentRowNum - 1);
         }
       }
     }
@@ -292,33 +314,11 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         const currentRowNum = Number(currentRowNumResult.data.RowNum);
         console.log("Fetching current row of current song: ", currentRowNum);
 
-        //fetch song in the next row
-        let songResult;
+        //fetch next song
         if (currentRowNum === numOfSongs) {
-          //loop back the beginning of the list
-          songResult = await fetchSongByRowNum(numOfSongs);
+          playSong(numOfSongs);
         } else {
-          songResult = await fetchSongByRowNum(currentRowNum + 1);
-        }
-
-        let song: songType;
-        if (songResult.success) {
-          console.log("Fetched song: ", songResult.data);
-          song = songResult.data;
-
-          //get the absolute file path and change what is being played
-          const absolutePath = await appendFilePaths(
-            settingsData.selectedDir,
-            song.FileLocation,
-          );
-          const settingResult = await updateCurrentlyPlayingSettings(
-            absolutePath,
-            song.SongID,
-          );
-
-          if (settingResult.success) {
-            updateSettings();
-          }
+          playSong(currentRowNum + 1);
         }
       }
     }
@@ -329,12 +329,28 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
     setIsLooping((prev) => !prev);
   };
 
+  const handleRandom = () => {
+    console.log("Random toggled");
+    setIsRandomized((prev) => !prev);
+  };
+
   return (
     <div className="flex w-full flex-col items-center">
       <audio ref={audioRef} src={fileUrl} preload="metadata"></audio>
       <div className="relative mb-2 flex w-[80%] space-x-3 rounded-full bg-slate-900 lg:w-[60%] xl:justify-center">
-        <Button className="ml-20 inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600 xl:ml-2">
+        <Button
+          className="relative ml-20 inline-flex items-center justify-center gap-2 rounded-full p-3 text-sm/6 font-semibold text-white transition hover:scale-110 data-[hover]:bg-gray-600 xl:ml-2"
+          onClick={handleRandom}
+        >
           <Shuffle />
+          {isRandomized ? (
+            <span className="absolute right-1 top-2 flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+            </span>
+          ) : (
+            <></>
+          )}
         </Button>
 
         <Button
