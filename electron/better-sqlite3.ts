@@ -401,12 +401,12 @@ export async function deleteSong(songID: number) {
   }
 }
 
-export async function fetchSongs() {
+export async function fetchSongs(filter: string = "") {
   try {
     await waitForDbInitialization();
 
-    const stmt = database?.prepare("SELECT * FROM Song");
-    const songs = stmt?.all();
+    const stmt = database?.prepare(`SELECT * FROM Song WHERE Title LIKE ?`);
+    const songs = stmt?.all(`%${filter}%`);
     return { success: true, data: songs };
   } catch (error) {
     console.error("Error fetching from song table:", error);

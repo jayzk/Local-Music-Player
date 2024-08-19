@@ -246,8 +246,8 @@ ipcMain.handle("add-folder-files", async () => {
   return result;
 });
 
-ipcMain.handle("fetch-songs", async () => {
-  const result = await fetchSongs();
+ipcMain.handle("fetch-songs", async (_event, filter?: string) => {
+  const result = await fetchSongs(filter);
   return result;
 });
 

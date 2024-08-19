@@ -5,7 +5,7 @@ import { fetchSongs } from "../utils/IpcUtils";
 
 type SongsContextType = {
   songs: songType[];
-  updateSongList: () => void;
+  updateSongList: (filter?: string) => void;
 };
 
 const SongsContext = createContext<SongsContextType | undefined>(undefined);
@@ -14,8 +14,8 @@ export const SongsListProvider = ({ children }: any) => {
   const [songs, setSongs] = useState<songType[]>([]);
   const { settingsData } = useSettingsContext();
 
-  const updateSongList = async () => {
-    const result = await fetchSongs();
+  const updateSongList = async (filter?: string) => {
+    const result = await fetchSongs(filter);
     if (result.success) {
       setSongs(result.data);
     } else {

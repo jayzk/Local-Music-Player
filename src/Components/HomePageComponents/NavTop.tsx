@@ -1,14 +1,15 @@
 import { MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/20/solid";
-import React, { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 import { useSettingsContext } from "../../Contexts/SettingsContext";
 import { useSongListContext } from "../../Contexts/SongListContext";
 import { useToastContext } from "../../Contexts/ToastContext";
-import { insertSongFolder, selectDirectory, updateSelectedDirSettings, updateSongTable } from "../../utils/IpcUtils";
+import { insertSongFolder, selectDirectory, updateSelectedDirSettings } from "../../utils/IpcUtils";
 
 export default function NavTop() {
   const [selectedDirPath, setSelectedDirPath] = useState("");
   const { settingsData, updateSettings } = useSettingsContext();
+  const [ searchFilter, setSearhFilter ] = useState("");
   const { updateSongList } = useSongListContext();
   const toast = useToastContext();
 
@@ -43,6 +44,10 @@ export default function NavTop() {
     // }
   };
 
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearhFilter(event.target.value);
+  }
+
   //re-render when settingsData updates
   useEffect(() => {
     if (settingsData) {
@@ -57,6 +62,11 @@ export default function NavTop() {
       console.log("NavTop -> Selected Dir: ", selectedDirPath);
     }
   }, [selectedDirPath]);
+
+  //re-render song list when search filters are applied
+  useEffect(() => {
+    updateSongList(searchFilter);
+  }, [searchFilter]);
 
   return (
     <div className="relative flex flex-col items-center justify-center space-y-2 border-b-2 border-slate-700 p-3 lg:flex-row lg:justify-center">
@@ -82,6 +92,8 @@ export default function NavTop() {
         <input
           className="peer h-10 rounded-lg border-2 border-slate-600 bg-slate-600 px-5 pl-10 text-sm text-white caret-white outline-none transition duration-200 focus:border-white"
           placeholder="Search"
+          value={searchFilter}
+          onChange={handleSearchChange}
         />
         <MagnifyingGlassIcon className="absolute inset-2.5 size-5 text-gray-400 transition duration-200 peer-focus:text-white" />
       </div>
