@@ -26,7 +26,10 @@ export default defineConfig({
             commonjsOptions: {
               ignoreDynamicRequires: true,
               transformMixedEsModules: true,
-            }
+            },
+            rollupOptions: {
+              external: ['better-sqlite3'],
+            },
           },
         },
       },
@@ -43,7 +46,7 @@ export default defineConfig({
         ? undefined
         : {},
     }),
-    bindingSqlite3(),
+    //bindingSqlite3(),
   ],
 })
 
