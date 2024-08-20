@@ -4,7 +4,7 @@ const useDownloadProgress = () => {
   const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleProgress = (event: any, data: string) => {
+    const handleProgress = (_event: any, data: string) => {
       setDownloadProgress(data);
     };
 

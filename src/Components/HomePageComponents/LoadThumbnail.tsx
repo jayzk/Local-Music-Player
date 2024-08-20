@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import defaultThumbNail from "/assets/default-thumbnail.png";
 
 import { useSettingsContext } from "../../Contexts/SettingsContext";

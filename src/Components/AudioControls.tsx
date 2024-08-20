@@ -242,7 +242,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const handleTimeChange = () => {
     const audio = audioRef.current;
     if (audio && timeSliderRef.current) {
-      const newTime = parseFloat(timeSliderRef.current?.value);
+      const newTime = parseFloat(timeSliderRef.current.value);
       audio.currentTime = newTime;
       setCurrentTime(newTime); //used to update the slider render only
 

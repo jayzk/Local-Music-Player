@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const root = path.join(__dirname, "..");
-const TAG = "[better-sqlite3]";
+//const TAG = "[better-sqlite3]";
 let database: Database.Database | null;
 
 //stores existing files already in the current database (does not store absolute file paths, just relative to the Song folder)
@@ -105,18 +105,18 @@ function getSqlite3(filename: string) {
   });
 }
 
-function getExistingFilePaths() {
-  // Fetch all existing file locations in the Song table
-  const existingFilesQuery = database?.prepare("SELECT FileLocation FROM Song");
-  const existingFiles = existingFilesQuery?.all() || [];
+// function getExistingFilePaths() {
+//   // Fetch all existing file locations in the Song table
+//   const existingFilesQuery = database?.prepare("SELECT FileLocation FROM Song");
+//   const existingFiles = existingFilesQuery?.all() || [];
 
-  // Store existing file locations in a Set for quick lookup
-  const existingFilePaths = new Set(
-    existingFiles.map((row) => (row as any).FileLocation),
-  );
+//   // Store existing file locations in a Set for quick lookup
+//   const existingFilePaths = new Set(
+//     existingFiles.map((row) => (row as any).FileLocation),
+//   );
 
-  return existingFilePaths;
-}
+//   return existingFilePaths;
+// }
 
 /**
  * TODO: keep this for now
