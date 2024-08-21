@@ -9,6 +9,7 @@ import {
   appendFilePaths,
   updateCurrentlyPlayingSettings,
 } from "../../utils/IpcUtils";
+import { formatTime } from "../../utils/helpers";
 
 export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
@@ -58,12 +59,6 @@ export default function () {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [isSubMenuVisible]);
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
 
   return (
     <div className="mx-2 mt-2 h-full">

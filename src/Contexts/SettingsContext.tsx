@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { settingsType } from "../../public/types.ts";
 import { readSettingsData } from "../utils/IpcUtils";
 

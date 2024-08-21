@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const root = path.join(__dirname, "..");
-const TAG = "[better-sqlite3]";
+//const TAG = "[better-sqlite3]";
 let database: Database.Database | null;
 
 //stores existing files already in the current database (does not store absolute file paths, just relative to the Song folder)
@@ -105,18 +105,18 @@ function getSqlite3(filename: string) {
   });
 }
 
-function getExistingFilePaths() {
-  // Fetch all existing file locations in the Song table
-  const existingFilesQuery = database?.prepare("SELECT FileLocation FROM Song");
-  const existingFiles = existingFilesQuery?.all() || [];
+// function getExistingFilePaths() {
+//   // Fetch all existing file locations in the Song table
+//   const existingFilesQuery = database?.prepare("SELECT FileLocation FROM Song");
+//   const existingFiles = existingFilesQuery?.all() || [];
 
-  // Store existing file locations in a Set for quick lookup
-  const existingFilePaths = new Set(
-    existingFiles.map((row) => (row as any).FileLocation),
-  );
+//   // Store existing file locations in a Set for quick lookup
+//   const existingFilePaths = new Set(
+//     existingFiles.map((row) => (row as any).FileLocation),
+//   );
 
-  return existingFilePaths;
-}
+//   return existingFilePaths;
+// }
 
 /**
  * TODO: keep this for now
@@ -401,12 +401,12 @@ export async function deleteSong(songID: number) {
   }
 }
 
-export async function fetchSongs() {
+export async function fetchSongs(filter: string = "") {
   try {
     await waitForDbInitialization();
 
-    const stmt = database?.prepare("SELECT * FROM Song");
-    const songs = stmt?.all();
+    const stmt = database?.prepare(`SELECT * FROM Song WHERE Title LIKE ?`);
+    const songs = stmt?.all(`%${filter}%`);
     return { success: true, data: songs };
   } catch (error) {
     console.error("Error fetching from song table:", error);

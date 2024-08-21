@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useSongListContext } from "../../Contexts/SongListContext";
 import { createDatabase } from "../../utils/IpcUtils";

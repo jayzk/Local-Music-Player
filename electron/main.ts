@@ -11,7 +11,6 @@ import * as path from "path";
 import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchCurrentRowNum, fetchSongByRowNum, fetchSongs, fetchTotalNumOfSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
 import {
   readSettings,
-  writeSettings,
   updateVolume,
   updateSelectedDir,
   updateCurrentlyPlaying,
@@ -99,9 +98,9 @@ app.whenReady().then(() => {
   });
 
   // Modify the user agent for all requests to the following urls.
-  const filter = {
-    urls: ["https://*.github.com/*", "*://electron.github.io/*", "*:///*"],
-  };
+  // const filter = {
+  //   urls: ["https://*.github.com/*", "*://electron.github.io/*", "*:///*"],
+  // };
 
   //Leave this here just in case because chromium can be buggy with ranges
   //   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -246,8 +245,8 @@ ipcMain.handle("add-folder-files", async () => {
   return result;
 });
 
-ipcMain.handle("fetch-songs", async () => {
-  const result = await fetchSongs();
+ipcMain.handle("fetch-songs", async (_event, filter?: string) => {
+  const result = await fetchSongs(filter);
   return result;
 });
 

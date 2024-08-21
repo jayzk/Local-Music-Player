@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AudioControls from "./AudioControls";
 
 import { useSettingsContext } from "../Contexts/SettingsContext";

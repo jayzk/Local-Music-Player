@@ -76,9 +76,9 @@ export async function createDatabase() {
   return result;
 }
 
-export async function fetchSongs() {
+export async function fetchSongs(filter?: string) {
   console.log("[DEBUG] fetching songs from song table");
-  const result = await window.ipcRenderer.invoke("fetch-songs");
+  const result = await window.ipcRenderer.invoke("fetch-songs", filter);
   return result;
 }
 
