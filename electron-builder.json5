@@ -11,6 +11,12 @@
     "dist",
     "dist-electron"
   ],
+  "extraFiles": [
+    {
+      "from": "public/bin",
+      "to": "resources/app.asar.unpacked/public/bin"
+    }
+  ],
   "mac": {
     "target": [
       "dmg"

@@ -6,8 +6,8 @@ import { writeToErrorFile } from "./helpers";
 import { insertSongFolder } from "./better-sqlite3";
 
 // import binaries
-export const FFMPEG_BINARY_PATH = require("ffmpeg-static"); //using import gives the wrong file path to the executable
-export const YT_DLP_BINARY_PATH = path.join(__dirname, "..", "bin", "yt-dlp.exe");
+export const FFMPEG_BINARY_PATH = path.join(__dirname, "..", "public", "bin", "ffmpeg.exe").replace("app.asar", "app.asar.unpacked");
+export const YT_DLP_BINARY_PATH = path.join(__dirname, "..", "public", "bin", "yt-dlp.exe").replace("app.asar", "app.asar.unpacked");
 
 // output templates for yt-dlp
 const SongOutputTemplate = "Songs/%(title)s-[%(id)s].%(ext)s";
@@ -39,7 +39,7 @@ export async function downloadVideo(ytURL: string, checkBoxes: CheckBoxType) {
     }
 
     //construct thumbnail command args
-    let thumbnailArgs: String[] = [];
+    let thumbnailArgs: string[] = [];
     if (checkBoxes.thumbnailChecked) {
       console.log("Including thumbnail args");
       thumbnailArgs = [
@@ -115,7 +115,7 @@ export async function downloadPlaylist(event: Electron.IpcMainInvokeEvent, ytURL
     }
 
     //construct thumbnail command args
-    let thumbnailArgs: String[] = [];
+    let thumbnailArgs: string[] = [];
     if (checkBoxes.thumbnailChecked) {
       console.log("Including thumbnail args");
       thumbnailArgs = [
