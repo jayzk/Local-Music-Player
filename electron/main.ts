@@ -24,27 +24,6 @@ const __dirname = path.dirname(__filename);
 //for formatting logs
 const divider = "============================";
 
-//TODO: trace warnings
-// process.traceProcessWarnings = true;
-// process.on('uncaughtException', function (error) {
-//   // Do nothing if the user has a custom uncaught exception handler.
-//   if (process.listenerCount('uncaughtException') > 1) {
-//     console.log("ERROR TEST", error);
-//     return;
-//   }
-
-//   // Show error in GUI.
-//   // We can't import { dialog } at the top of this file as this file is
-//   // responsible for setting up the require hook for the "electron" module
-//   // so we import it inside the handler down here
-//   import('electron')
-//     .then(({ dialog }) => {
-//       const stack = error.stack ? error.stack : `${error.name}: ${error.message}`;
-//       const message = 'Uncaught Exception:\n' + stack;
-//       dialog.showErrorBox('A JavaScript error occurred in the main process', message);
-//     });
-// });
-
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -281,8 +260,6 @@ ipcMain.handle("fetch-total-numOfSongs", async (_event) => {
 
 ipcMain.handle("append-filePaths", async (_event, path1, path2) => {
   try {
-    //console.log("PATH 1: ", path1);
-    //console.log("PATH 2: ", path2);
     const result = path.join(path1, path2);
     const absPath = result.replaceAll("\\", "/");
     return "media-loader:///" + absPath; //add custom protocol
