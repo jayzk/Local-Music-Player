@@ -6,8 +6,8 @@ import { writeToErrorFile } from "./helpers";
 import { insertSongFolder } from "./better-sqlite3";
 
 // import binaries
-export const FFMPEG_BINARY_PATH = path.join(__dirname, "..", "public", "bin", "ffmpeg.exe").replace("app.asar", "app.asar.unpacked");
-export const YT_DLP_BINARY_PATH = path.join(__dirname, "..", "public", "bin", "yt-dlp.exe").replace("app.asar", "app.asar.unpacked");
+export const FFMPEG_BINARY_PATH = path.join(__dirname, "..", "bin", "ffmpeg.exe").replace("app.asar", "app.asar.unpacked");
+export const YT_DLP_BINARY_PATH = path.join(__dirname, "..", "bin", "yt-dlp.exe").replace("app.asar", "app.asar.unpacked");
 
 // output templates for yt-dlp
 const SongOutputTemplate = "Songs/%(title)s-[%(id)s].%(ext)s";

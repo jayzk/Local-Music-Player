@@ -13,8 +13,8 @@
   ],
   "extraFiles": [
     {
-      "from": "public/bin",
-      "to": "resources/app.asar.unpacked/public/bin"
+      "from": "bin",
+      "to": "resources/app.asar.unpacked/bin"
     }
   ],
   "mac": {
