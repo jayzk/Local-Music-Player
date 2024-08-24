@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Description,
   Dialog,
@@ -16,9 +16,10 @@ import { deleteSong } from "../../utils/IpcUtils";
 type EllipsisMenuProps = {
   song: songType;
   onClick: (event: React.MouseEvent) => void; //used to stop propagation
+  componentRef?: React.RefObject<HTMLDivElement>;
 };
 
-export default function EllipsisMenu({ song, onClick }: EllipsisMenuProps) {
+export default function EllipsisMenu({ song, onClick, componentRef }: EllipsisMenuProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const toast = useToastContext();
   const { updateSongList } = useSongListContext();
@@ -53,6 +54,7 @@ export default function EllipsisMenu({ song, onClick }: EllipsisMenuProps) {
       <div
         className="flex items-center justify-center rounded-lg bg-slate-900 p-2"
         onClick={onClick}
+        ref={componentRef}
       >
         <button
           className="p-1 px-2 text-sm text-white hover:bg-slate-600"

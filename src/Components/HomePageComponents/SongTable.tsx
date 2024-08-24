@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import EllipsisMenu from "./EllipsisMenu";
 import LoadThumbnail from "./LoadThumbnail";
@@ -10,11 +10,12 @@ import {
   updateCurrentlyPlayingSettings,
 } from "../../utils/IpcUtils";
 import { formatTime } from "../../utils/helpers";
+import useOutsideClick from "../../Hooks/useOutsideClick";
 
 export default function () {
-  const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
   const componentRef = useRef<HTMLDivElement>(null);
+  const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
   const { songs } = useSongListContext();
   const { settingsData, updateSettings } = useSettingsContext();
 
@@ -40,25 +41,9 @@ export default function () {
       console.log("Ellipsis clicked!");
     };
 
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      componentRef.current &&
-      !componentRef.current.contains(event.target as Node)
-    ) {
-      setIsSubMenuVisible(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isSubMenuVisible) {
-      document.addEventListener("click", handleClickOutside);
-    } else {
-      document.removeEventListener("click", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [isSubMenuVisible]);
+  useOutsideClick(componentRef, (isOutside) => {
+    if (isOutside) setIsSubMenuVisible(false);
+  });
 
   return (
     <div className="mx-2 mt-2 h-full">
@@ -104,14 +89,12 @@ export default function () {
                       <EllipsisHorizontalIcon className="size-5" />
                     </button>
                   </div>
-                  <div
-                    className="absolute inset-y-2 -left-24 z-10"
-                    ref={componentRef}
-                  >
-                    {isSubMenuVisible && song.SongID === whichSubMenu && (
+                  <div className="absolute inset-y-2 -left-24 z-10">
+                    {song.SongID === whichSubMenu && isSubMenuVisible && (
                       <EllipsisMenu
                         song={song}
                         onClick={(e) => e.stopPropagation()}
+                        componentRef={componentRef}
                       />
                     )}
                   </div>
