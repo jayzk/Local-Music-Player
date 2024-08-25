@@ -11,6 +11,7 @@ import {
 } from "../../utils/IpcUtils";
 import { formatTime } from "../../utils/helpers";
 import useOutsideClick from "../../Hooks/useOutsideClick";
+import useScrollToSongID from "../../Hooks/useScrollToElement";
 
 export default function () {
   const [whichSubMenu, setWhichSubMenu] = useState<Number>();
@@ -18,6 +19,7 @@ export default function () {
   const [isSubMenuVisible, setIsSubMenuVisible] = useState(false);
   const { songs } = useSongListContext();
   const { settingsData, updateSettings } = useSettingsContext();
+  const scrollToElement = useScrollToSongID();
 
   const handleRowClick = async (fileLocation: string, songID: number) => {
     if (fileLocation) {
@@ -31,6 +33,8 @@ export default function () {
       //update settings data
       updateSettings();
     }
+
+    scrollToElement(songID);
   };
 
   const handleEllipsis =
@@ -66,6 +70,7 @@ export default function () {
             {songs.map((song, index) => (
               <tr
                 key={song.SongID}
+                id={song.SongID.toString()}
                 className={`group cursor-pointer ${settingsData?.currentlyPlayingID === song.SongID ? "bg-slate-600" : ""} hover:bg-slate-600`}
                 onClick={() => handleRowClick(song.FileLocation, song.SongID)}
               >
