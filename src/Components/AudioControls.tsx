@@ -22,6 +22,7 @@ import {
 } from "../utils/IpcUtils";
 import { songType } from "../../public/types.ts";
 import { formatTime, getRandomInt, sleep } from "../utils/helpers.ts";
+import useScrollToSongID from "../Hooks/useScrollToElement.tsx";
 
 interface AudioControlsProps {
   fileUrl: string;
@@ -37,6 +38,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
   const [isRandomized, setIsRandomized] = useState(false);
 
   const { settingsData, updateSettings } = useSettingsContext();
+  const scrollToSongID = useScrollToSongID();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeSliderRef = useRef<HTMLInputElement | null>(null);
@@ -144,9 +146,13 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
         song.SongID,
       );
 
+      //update settings
       if (settingResult.success) {
         updateSettings();
       }
+
+      //autoscroll to song ID
+      scrollToSongID(song.SongID);
     }
   }
 
@@ -176,6 +182,7 @@ export default function AudioControls({ fileUrl }: AudioControlsProps) {
           randomNum = getRandomInt(1, numOfSongs);
         }
 
+        //play song track
         playSong(randomNum);
       }
     }
