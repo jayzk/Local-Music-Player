@@ -78,7 +78,7 @@ export default function () {
                 <td className="w-64 lg:w-80 xl:w-96">
                   <div className="flex items-center">
                     <LoadThumbnail thumbnailPath={song.ThumbnailLocation} />
-                    <p className="truncate">{song.Title}</p>
+                    <p className={`${settingsData?.currentlyPlayingID === song.SongID ? "" : "truncate"}`}>{song.Title}</p>
                   </div>
                 </td>
                 <td className="w-24 lg:w-40 xl:w-64">{song.Artist}</td>
@@ -94,7 +94,7 @@ export default function () {
                       <EllipsisHorizontalIcon className="size-5" />
                     </button>
                   </div>
-                  <div className="absolute inset-y-2 -left-24 z-10">
+                  <div className="absolute inset-y-2 -left-52 z-10">
                     {song.SongID === whichSubMenu && isSubMenuVisible && (
                       <EllipsisMenu
                         song={song}
