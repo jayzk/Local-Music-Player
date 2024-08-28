@@ -17,7 +17,7 @@ type DialogProps = {
   setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function DialogDeleteSong({song, isDialogOpen, setIsDialogOpen}: DialogProps) {
+export default function RemoveSongDialog({song, isDialogOpen, setIsDialogOpen}: DialogProps) {
   // const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { updateSongList } = useSongListContext();
   const { updateSettings } = useSettingsContext();

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
-import { TrashIcon, MusicalNoteIcon, UserIcon, PhotoIcon } from "@heroicons/react/20/solid";
+import {
+  TrashIcon,
+  MusicalNoteIcon,
+  UserIcon,
+  PhotoIcon,
+} from "@heroicons/react/20/solid";
 import { songType } from "../../../public/types";
-import DialogDeleteSong from "./Dialogs/DialogDeleteSong";
+import RemoveSongDialog from "./Dialogs/RemoveSongDialog";
 
 type EllipsisMenuProps = {
   song: songType;
@@ -9,12 +14,16 @@ type EllipsisMenuProps = {
   componentRef?: React.RefObject<HTMLDivElement>;
 };
 
-export default function EllipsisMenu({ song, onClick, componentRef }: EllipsisMenuProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+export default function EllipsisMenu({
+  song,
+  onClick,
+  componentRef,
+}: EllipsisMenuProps) {
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
   const handleRemove = () => {
     console.log("Remove button: ", song);
-    setIsDialogOpen(true);
+    setIsRemoveDialogOpen(true);
   };
 
   return (
@@ -24,25 +33,19 @@ export default function EllipsisMenu({ song, onClick, componentRef }: EllipsisMe
         onClick={onClick}
         ref={componentRef}
       >
-        <button
-          className="p-1 px-2 text-sm text-white hover:bg-slate-600"
-        >
+        <button className="p-1 px-2 text-sm text-white hover:bg-slate-600">
           <div className="flex items-center">
             <MusicalNoteIcon className="mr-2 size-4" />
             Change song title
           </div>
         </button>
-        <button
-          className="p-1 px-2 text-sm text-white hover:bg-slate-600"
-        >
+        <button className="p-1 px-2 text-sm text-white hover:bg-slate-600">
           <div className="flex items-center">
             <UserIcon className="mr-2 size-4" />
             Change artist
           </div>
         </button>
-        <button
-          className="p-1 px-2 text-sm text-white hover:bg-slate-600"
-        >
+        <button className="p-1 px-2 text-sm text-white hover:bg-slate-600">
           <div className="flex items-center">
             <PhotoIcon className="mr-2 size-4" />
             Change Thumbnail
@@ -58,7 +61,11 @@ export default function EllipsisMenu({ song, onClick, componentRef }: EllipsisMe
           </div>
         </button>
       </div>
-      <DialogDeleteSong song={song} isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen}/>
+      <RemoveSongDialog
+        song={song}
+        isDialogOpen={isRemoveDialogOpen}
+        setIsDialogOpen={setIsRemoveDialogOpen}
+      />
     </>
   );
 }
