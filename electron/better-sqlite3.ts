@@ -309,7 +309,7 @@ export async function insertSong(songFolderPath: string, file: string) {
 
       if (fs.existsSync(thumbnailCheckPath)) {
         thumbnailPath = path.join(
-          "thumbnails",
+          "Thumbnails",
           path.parse(file).name + ".webp",
         );
       } else {
@@ -455,6 +455,48 @@ export async function fetchTotalNumOfSongs() {
   } catch (error) {
     console.error("Error fetching number of rows in the song table:", error);
     return { success: false, message: "Error fetching total number of rows/songs" };
+  }
+}
+
+export async function updateSongTitle(songID: number, newSongTitle: string) {
+  try {
+    await waitForDbInitialization();
+
+    const statement = database?.prepare(`UPDATE Song Set Title = ? WHERE SongID = ?`);
+    statement?.run(newSongTitle, songID);
+
+    return { success: true, message: "Updated song title!" };
+  } catch (error) {
+    console.error("Error updating song title in database:", error);
+    return { success: false, message: "Error updating song title!" };
+  }
+}
+
+export async function updateSongArtist(songID: number, newSongArtist: string) {
+  try {
+    await waitForDbInitialization();
+
+    const statement = database?.prepare(`UPDATE Song Set Artist = ? WHERE SongID = ?`);
+    statement?.run(newSongArtist, songID);
+
+    return { success: true, message: "Updated song artist!" };
+  } catch (error) {
+    console.error("Error updating song artist in database:", error);
+    return { success: false, message: "Error updating song artist!" };
+  }
+}
+
+export async function updateSongThumbnail(songID: number, newSongThumbnail: string) {
+  try {
+    await waitForDbInitialization();
+
+    const statement = database?.prepare(`UPDATE Song Set ThumbnailLocation = ? WHERE SongID = ?`);
+    statement?.run(newSongThumbnail, songID);
+
+    return { success: true, message: "Updated song thumbnail!" };
+  } catch (error) {
+    console.error("Error updating song thumbnail in database:", error);
+    return { success: false, message: "Error updating song thumbnail!" };
   }
 }
 

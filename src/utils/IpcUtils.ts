@@ -106,6 +106,24 @@ export async function fetchTotalNumOfSongs() {
   return result;
 }
 
+export async function updateSongTitle(songID: number, newSongTitle: string) {
+  console.log("[DEBUG] updating songID ", songID, " to new song title: ", newSongTitle);
+  const result = await window.ipcRenderer.invoke("update-song-title", songID, newSongTitle);
+  return result;
+}
+
+export async function updateSongArtist(songID: number, newSongArtist: string) {
+  console.log("[DEBUG] updating songID ", songID, " to new song artist: ", newSongArtist);
+  const result = await window.ipcRenderer.invoke("update-song-artist", songID, newSongArtist);
+  return result;
+}
+
+export async function updateSongThumbnail(songID: number, newSongThumbnail: string) {
+  console.log("[DEBUG] updating songID ", songID, " to new thumbnail: ", newSongThumbnail);
+  const result = await window.ipcRenderer.invoke("update-song-thumbnail", songID, newSongThumbnail);
+  return result;
+}
+
 /**
  * TODO: keep this for now
  * @description updates the song table if any changes are made in the future
@@ -137,5 +155,11 @@ export async function readSettingsData() {
 export async function selectDirectory() {
   const result = await window.ipcRenderer.invoke("open-dir-dialog");
   console.log("[DEBUG] New directory selected: ", result);
+  return result;
+}
+
+export async function selectThumbnail() {
+  const result = await window.ipcRenderer.invoke("open-thumbnail-dialog");
+  console.log("[DEBUG] File selected: ", result);
   return result;
 }

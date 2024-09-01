@@ -18,7 +18,6 @@ type DialogProps = {
 };
 
 export default function RemoveSongDialog({song, isDialogOpen, setIsDialogOpen}: DialogProps) {
-  // const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { updateSongList } = useSongListContext();
   const { updateSettings } = useSettingsContext();
   const toast = useToastContext();

@@ -8,7 +8,7 @@ import {
 import { fileURLToPath } from "node:url";
 
 import * as path from "path";
-import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchCurrentRowNum, fetchSongByRowNum, fetchSongs, fetchTotalNumOfSongs, insertSongFolder, updateSongTable } from "./better-sqlite3";
+import { closeDatabase, createDatabase, deleteSong, detectSqliteFile, fetchCurrentRowNum, fetchSongByRowNum, fetchSongs, fetchTotalNumOfSongs, insertSongFolder, updateSongArtist, updateSongTable, updateSongThumbnail, updateSongTitle } from "./better-sqlite3";
 import {
   readSettings,
   updateVolume,
@@ -166,6 +166,32 @@ ipcMain.handle("open-file-dialog", async () => {
   return result.filePaths;
 });
 
+ipcMain.handle("open-thumbnail-dialog", async () => {
+  const extFilters = [
+    { name: "Images", extensions: ["png", "webp", "jpeg", "jpg", "svg"] },
+  ];
+
+  const settingsData = await readSettings();
+  let thumbnailFolder;
+  if(settingsData) {
+    thumbnailFolder = path.join(settingsData.selectedDir, "Thumbnails");
+  } else {
+    thumbnailFolder = "";
+  }
+  
+  const result = await dialog.showOpenDialog({
+    properties: ["openFile"],
+    filters: extFilters,
+    defaultPath: thumbnailFolder,
+  });
+
+  if(!result.filePaths[0].startsWith(thumbnailFolder)) {
+    return {success: false, message: "Please select a picture from the thumbnail folder"};
+  } else {
+    return {success: true, data: result.filePaths[0]};
+  }
+});
+
 // IPC handler for opening directory dialog
 ipcMain.handle("open-dir-dialog", async () => {
   const result = await dialog.showOpenDialog({
@@ -251,12 +277,27 @@ ipcMain.handle("fetch-song-by-rownum", async (_event, rowNum: number) => {
 ipcMain.handle("fetch-current-rownum", async (_event, songID: number) => {
   const result = await fetchCurrentRowNum(songID);
   return result;
-})
+});
 
 ipcMain.handle("fetch-total-numOfSongs", async (_event) => {
   const result = await fetchTotalNumOfSongs();
   return result;
-})
+});
+
+ipcMain.handle("update-song-title", async (_event, songID: number, newSongTitle: string) => {
+  const result = await updateSongTitle(songID, newSongTitle);
+  return result;
+});
+
+ipcMain.handle("update-song-artist", async (_event, songID: number, newSongArtist: string) => {
+  const result = await updateSongArtist(songID, newSongArtist);
+  return result;
+});
+
+ipcMain.handle("update-song-thumbnail", async (_event, songID: number, newSongThumbnail: string) => {
+  const result = await updateSongThumbnail(songID, newSongThumbnail);
+  return result;
+});
 
 ipcMain.handle("append-filePaths", async (_event, path1, path2) => {
   try {
