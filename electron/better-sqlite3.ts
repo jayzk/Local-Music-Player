@@ -173,17 +173,31 @@ async function updateExistingFilePaths() {
   }
 }
 
+function createFolder(path: string) {
+  fs.mkdir(path, (err) => {
+    if (err) {
+      console.error(`Error creating folder: ${err}`);
+    } else {
+      console.log(`Folder created at: ${path}`);
+    }
+  });
+}
+
 export async function createDatabase() {
   try {
     const settingsData = await readSettings();
     if (settingsData) {
       const selectedDB = path.join(
-        settingsData?.selectedDir,
+        settingsData.selectedDir,
         "music-db.sqlite",
       );
       database = (await getSqlite3(selectedDB)) as Database.Database;
       console.log("Connected to database: ", database);
       setupDatabase(database);
+
+      //create necessary folders
+      createFolder(path.join(settingsData.selectedDir, "Songs"));
+      createFolder(path.join(settingsData.selectedDir, "Thumbnails"));
     }
 
     const result = await updateExistingFilePaths();
