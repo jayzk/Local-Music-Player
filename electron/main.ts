@@ -194,11 +194,24 @@ ipcMain.handle("open-thumbnail-dialog", async () => {
 
 // IPC handler for opening directory dialog
 ipcMain.handle("open-dir-dialog", async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ["openDirectory"],
-  });
+  try {
+    const settingsData = await readSettings();
 
-  return result.filePaths;
+    const dirPaths = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+    });
+
+    //stop current song from being played
+    const result = await updateCurrentlyPlaying(settingsData, "", 0);
+
+    if(result.success) {
+      return {success: true, data: dirPaths.filePaths[0], message: "Updated to new directory!"};
+    } else {
+      return {success: false, message: "Failed to update the currently playing song!"};
+    }
+  } catch (error) {
+    return {success: false, message: "Failed to update to new directory!"};
+  }
 });
 
 // IPC handler for reading local settings data

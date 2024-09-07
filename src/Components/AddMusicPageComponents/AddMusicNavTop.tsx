@@ -1,18 +1,25 @@
 import { FolderIcon } from '@heroicons/react/20/solid'
 import { useSettingsContext } from '../../Contexts/SettingsContext';
-import { selectDirectory, updateVolumeSettings } from '../../utils/IpcUtils';
+import { selectDirectory, updateSelectedDirSettings } from '../../utils/IpcUtils';
+import { useToastContext } from '../../Contexts/ToastContext';
 
 export default function () {
     const {settingsData, updateSettings} = useSettingsContext();
+    const toast = useToastContext();
+
 
     const handleOpenDirDialog = async () => {
-        const filePaths = await selectDirectory();
-        if (filePaths.length > 0) {
-          //get new directory
-          await updateVolumeSettings(filePaths[0]);
+        const result = await selectDirectory();
+        if (result.success) {
+          //update to new directory
+          await updateSelectedDirSettings(result.data);
     
           //update settings data
           updateSettings(); //TODO: may move this into ipcUtils.ts
+
+          toast.success(result.message);
+        } else {
+          toast.error(result.message);
         }
       };
 

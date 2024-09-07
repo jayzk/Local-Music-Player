@@ -14,15 +14,19 @@ export default function NavTop() {
   const toast = useToastContext();
 
   const handleOpenDirDialog = async () => {
-    const filePaths = await selectDirectory();
-    if (filePaths.length > 0) {
-      setSelectedDirPath(filePaths[0]); //update for rendering
+    const result = await selectDirectory();
+    if (result.success) {
+      setSelectedDirPath(result.data); //update for rendering
 
-      //get new directory
-      await updateSelectedDirSettings(filePaths[0]);
+      //update to new directory
+      await updateSelectedDirSettings(result.data);
 
       //update settings data
       updateSettings();
+
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
     }
   };
 
