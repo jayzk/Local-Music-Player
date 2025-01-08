@@ -1,10 +1,13 @@
-import { FolderIcon } from '@heroicons/react/20/solid'
+import { FolderIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid'
 import { useSettingsContext } from '../../Contexts/SettingsContext';
 import { selectDirectory, updateSelectedDirSettings } from '../../utils/IpcUtils';
 import { useToastContext } from '../../Contexts/ToastContext';
+import { useState } from 'react';
+import WarningDialog from './WarningDialog';
 
 export default function () {
     const {settingsData, updateSettings} = useSettingsContext();
+    const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
     const toast = useToastContext();
 
 
@@ -22,6 +25,10 @@ export default function () {
           toast.error(result.message);
         }
       };
+
+    const handleOpenWarningDialog = async () => {
+      setIsWarningDialogOpen(true);
+    }
 
   return (
     <>
@@ -43,6 +50,13 @@ export default function () {
             Change...
           </button>
         </div>  
+        {/* <div className='flex w-full items-center justify-center rounded-full'>
+          <button
+            onClick={handleOpenWarningDialog}
+            className='rounded-full bg-red-800 p-1 z-10'>
+            <ExclamationTriangleIcon className="size-9 fill-white" />
+          </button>
+        </div> */}
     </>
   )
 }

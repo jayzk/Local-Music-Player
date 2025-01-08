@@ -96,7 +96,7 @@ app.whenReady().then(() => {
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: path.join(process.env.VITE_PUBLIC, "assets/Logo.png"),
     minWidth: 768,
     minHeight: 768,
     webPreferences: {
@@ -122,6 +122,8 @@ function createWindow() {
   if (process.env.NODE_ENV === "development") {
     win.webContents.openDevTools();
   }
+
+  win.setMenuBarVisibility(false);
 
   win.maximize();
 

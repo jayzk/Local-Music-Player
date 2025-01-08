@@ -27,6 +27,12 @@
   background-clip: padding-box;
 }
 
+@layer components {
+  .h1 {
+      @apply font-bold text-2xl underline;
+  }
+}
+
 /* .thead-seperator {
   @apply p-5 border-b;
 } */

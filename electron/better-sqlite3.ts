@@ -379,10 +379,10 @@ export async function deleteSong(songID: number) {
       );
 
       console.log("Deleting audio file: ", songFileLocation);
-      console.log("Deleting thumbnail file: ", songThumbnailLocation);
+      console.log("Deleting thumbnail file: ", songData?.ThumbnailLocation);
 
       fs.unlinkSync(songFileLocation);
-      if (songThumbnailLocation !== "") {
+      if (songData?.ThumbnailLocation !== "") {
         fs.unlinkSync(songThumbnailLocation);
       }
 

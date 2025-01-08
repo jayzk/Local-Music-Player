@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { HomeIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import { HomeIcon, PlusCircleIcon, QuestionMarkCircleIcon } from "@heroicons/react/20/solid";
 import logo from "/assets/Logo.png"
 
 export default function Navbar() {
@@ -9,6 +9,8 @@ export default function Navbar() {
         return <HomeIcon className="size-5 mx-2" />;
       case 'Add Music':
         return <PlusCircleIcon className="size-5 mx-2" />;
+      case 'Guide':
+        return <QuestionMarkCircleIcon className="size-5 mx-2"/>
       default:
         return null;
     }
@@ -23,6 +25,7 @@ export default function Navbar() {
             [
               ['Home', '/'],
               ['Add Music', '/AddMusicYT'],
+              ['Guide', '/Guide'],
             ].map(([title, url]) => (
               <NavLink key={title} to={url} className="w-full rounded-lg px-3 py-3 text-white font-medium hover:bg-slate-100 hover:text-slate-900">
                 <div className="flex flex-row w-full items-center">
