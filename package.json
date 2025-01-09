@@ -1,7 +1,11 @@
 {
   "name": "local-music-player",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "A local music player",
+  "author": "Jayden Yeo <jayden.yeo@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/jayzk/Local-Music-Player",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",

@@ -1,4 +1,3 @@
-import React from 'react'
 import chooseGif from '/assets/choose.gif';
 import manualGif from '/assets/manual.gif';
 import youtubeGif from '/assets/youtube.gif';
@@ -15,7 +14,7 @@ export default function Guide({}: Props) {
             <div className='w-1/2 flex flex-col justify-center items-center'>
               <h1 className='h1'>Introduction</h1>
               <p className='text-justify'>
-                Welcome to _, a local music player app! This guide is designed to help you quickly 
+                Welcome to <b>Locafy</b>, a local music player app! This guide is designed to help you quickly 
                 get acquainted with all the features and make the most of your listening experience.
               </p>
             </div>

@@ -16,16 +16,9 @@ export default function AddMusicMainContainer() {
   const { updateSongList } = useSongListContext();
   const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
 
-  const [singleCheckedItems, setSingleCheckedItems] = useState<{ [key: string]: boolean } | undefined>({
+  const [singleCheckedItems] = useState<{ [key: string]: boolean } | undefined>({
     thumbnailChecked: false,
   });
-
-  //TODO: add another component like checkBox but with input boxes, make it optional in this case (range???)
-  const [playlistCheckedItems, setPlaylistCheckedItems] = useState<{ [key: string]: boolean }>({
-    thumbnailChecked: false,
-    reverseDownload: false,
-  });
-
   const toast = useToastContext();
 
   const handleDownloadSingle = async (

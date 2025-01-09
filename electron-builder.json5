@@ -3,7 +3,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "YourAppID",
   "asar": true,
-  "productName": "YourAppName",
+  "productName": "Locafy",
   "directories": {
     "output": "release/${version}"
   },
@@ -15,15 +15,21 @@
     {
       "from": "bin",
       "to": "resources/app.asar.unpacked/bin"
+    },
+    {
+      "from": "public/assets/Logo.png",  // Your icons folder
+      "to": "resources/app.asar.unpacked/icons"  // Where the icons will be placed in the app package
     }
   ],
   "mac": {
+    "icon": "resources/app.asar.unpacked/icons/Logo.png",
     "target": [
       "dmg"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
+    "icon": "resources/app.asar.unpacked/icons/Logo.png",
     "target": [
       {
         "target": "nsis",
@@ -41,6 +47,7 @@
     "deleteAppDataOnUninstall": false
   },
   "linux": {
+    "icon": "resources/app.asar.unpacked/icons/Logo.png",
     "target": [
       "AppImage"
     ],
